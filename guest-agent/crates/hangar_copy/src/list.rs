@@ -15,14 +15,13 @@ use std::{
 };
 
 use hangar_error::{Error, Result};
-
-use crate::json::push_string;
+use serde::Serialize;
 
 /// Keeps the JSON small enough for the host to read in one go, even for a huge folder.
 pub(crate) const MOST_ENTRIES: usize = 10_000;
 
 /// One listed folder; `parent` is `None` at a root.
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub(crate) struct Listing {
     path: String,
     parent: Option<String>,
@@ -30,12 +29,14 @@ pub(crate) struct Listing {
     entries: Vec<Entry>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize)]
 struct Entry {
     name: String,
     kind: Kind,
+    #[serde(rename = "link")]
     is_link: bool,
-    /// The name lost characters it couldn't decode.
+    /// The name lost characters it couldn't decode; left out when it didn't.
+    #[serde(rename = "lossy", skip_serializing_if = "std::ops::Not::not")]
     is_lossy: bool,
     /// In bytes; 0 for anything but a file.
     size: u64,
@@ -44,21 +45,12 @@ struct Entry {
 }
 
 /// For a link, the kind of what it points to; `Other` when that doesn't resolve.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
 enum Kind {
     Folder,
     File,
     Other,
-}
-
-impl Kind {
-    fn json_name(self) -> &'static str {
-        match self {
-            Kind::Folder => "folder",
-            Kind::File => "file",
-            Kind::Other => "other",
-        }
-    }
 }
 
 /// The absolute folder `asked` names: relative to `home`, and `home` itself without one.
@@ -108,11 +100,9 @@ pub(crate) fn read_listing(path: &Path, limit: usize) -> Result<Listing> {
 
 /// Writes the listing as one line of JSON.
 pub(crate) fn write_listing(listing: &Listing, mut output: impl Write) -> Result<()> {
-    let mut json = to_json(listing);
-    json.push('\n');
-
-    output
-        .write_all(json.as_bytes())
+    serde_json::to_writer(&mut output, listing)
+        .map_err(io::Error::from)
+        .and_then(|()| output.write_all(b"\n"))
         .and_then(|()| output.flush())
         .map_err(|error| Error::step("write the listing", error))
 }
@@ -210,47 +200,6 @@ fn seconds_since_1970(time: Option<SystemTime>) -> u64 {
 /// A name that isn't valid Unicode is shown with U+FFFD in its place.
 fn path_text(path: &Path) -> String {
     path.to_string_lossy().into_owned()
-}
-
-fn to_json(listing: &Listing) -> String {
-    let mut json = String::from("{\"path\":");
-    push_string(&mut json, &listing.path);
-
-    json.push_str(",\"parent\":");
-    match &listing.parent {
-        Some(parent) => push_string(&mut json, parent),
-        None => json.push_str("null"),
-    }
-
-    json.push_str(",\"truncated\":");
-    json.push_str(&listing.truncated.to_string());
-
-    json.push_str(",\"entries\":[");
-    for (index, entry) in listing.entries.iter().enumerate() {
-        if index > 0 {
-            json.push(',');
-        }
-        push_entry(&mut json, entry);
-    }
-    json.push_str("]}");
-    json
-}
-
-fn push_entry(json: &mut String, entry: &Entry) {
-    json.push_str("{\"name\":");
-    push_string(json, &entry.name);
-    json.push_str(",\"kind\":\"");
-    json.push_str(entry.kind.json_name());
-    json.push_str("\",\"link\":");
-    json.push_str(&entry.is_link.to_string());
-    if entry.is_lossy {
-        json.push_str(",\"lossy\":true");
-    }
-    json.push_str(",\"size\":");
-    json.push_str(&entry.size.to_string());
-    json.push_str(",\"modified\":");
-    json.push_str(&entry.modified.to_string());
-    json.push('}');
 }
 
 #[cfg(all(test, unix))]

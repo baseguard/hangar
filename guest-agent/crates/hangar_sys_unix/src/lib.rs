@@ -6,16 +6,26 @@
 mod vsock;
 
 use std::{
-    ffi::{CStr, CString, c_char},
+    ffi::CString,
     fs::File,
     io,
     os::{
-        fd::{AsFd, AsRawFd, FromRawFd},
+        fd::{AsFd, AsRawFd},
         unix::process::CommandExt,
     },
     process::Command,
-    ptr::null_mut,
     time::Duration,
+};
+
+use nix::{
+    errno::Errno,
+    poll::{PollFd, PollFlags, PollTimeout, poll},
+    pty::Winsize,
+    sys::{
+        signal::{Signal, killpg},
+        stat::{Mode, fchmod},
+    },
+    unistd::{Pid, Uid, User, fchown, geteuid, getuid, setsid},
 };
 
 pub use vsock::{VsockListener, VsockStream};
@@ -27,8 +37,6 @@ const TIOCSWINSZ: libc::c_ulong = 0x8008_7467;
 #[cfg(not(target_os = "macos"))]
 use libc::{TIOCSCTTY, TIOCSWINSZ};
 
-/// Large enough for any entry of the password database.
-const PASSWD_BUFFER: usize = 16 * 1024;
 /// More groups than any account in a guest belongs to.
 const GROUP_LIMIT: usize = 256;
 
@@ -38,33 +46,31 @@ pub fn is_root() -> bool {
 }
 
 pub fn effective_uid() -> u32 {
-    // SAFETY: `geteuid` takes no arguments and POSIX guarantees it always succeeds.
-    unsafe { libc::geteuid() }
+    geteuid().as_raw()
 }
 
 pub fn user_id() -> u32 {
-    // SAFETY: `getuid` has no preconditions and can't fail.
-    unsafe { libc::getuid() }
+    getuid().as_raw()
 }
 
 /// Waits up to `timeout` for `port` to have bytes to read, or to report its end; false when the
 /// time ran out first.
 pub fn wait_readable(port: &impl AsFd, timeout: Duration) -> io::Result<bool> {
-    let mut entry = libc::pollfd {
-        fd: port.as_fd().as_raw_fd(),
-        events: libc::POLLIN,
-        revents: 0,
-    };
-    let milliseconds = libc::c_int::try_from(timeout.as_millis()).unwrap_or(libc::c_int::MAX);
+    let mut entries = [PollFd::new(port.as_fd(), PollFlags::POLLIN)];
+    let timeout = PollTimeout::try_from(timeout).unwrap_or(PollTimeout::MAX);
 
-    // SAFETY: `entry` is one valid `pollfd` whose fd stays open for the call.
-    match unsafe { libc::poll(&raw mut entry, 1, milliseconds) } {
-        -1 if io::Error::last_os_error().kind() == io::ErrorKind::Interrupted => Ok(false),
-        -1 => Err(io::Error::last_os_error()),
-        0 => Ok(false),
+    match poll(&mut entries, timeout) {
+        Err(Errno::EINTR) | Ok(0) => Ok(false),
+        Err(error) => Err(error.into()),
         // A read of an fd poll can't watch would wait past any stop.
-        _ if entry.revents & libc::POLLNVAL != 0 => Err(io::ErrorKind::InvalidInput.into()),
-        _ => Ok(true),
+        Ok(_)
+            if entries[0]
+                .revents()
+                .is_some_and(|events| events.contains(PollFlags::POLLNVAL)) =>
+        {
+            Err(io::ErrorKind::InvalidInput.into())
+        }
+        Ok(_) => Ok(true),
     }
 }
 
@@ -79,20 +85,7 @@ pub struct Account {
 }
 
 pub fn account_named(name: &str) -> Option<Account> {
-    let name = CString::new(name).ok()?;
-    lookup(|entry, buffer, result| {
-        // SAFETY: `name` is NUL-terminated; `entry`, `buffer` and `result` point at locals of
-        // `lookup` that outlive the call, and `buffer`'s length is passed with it.
-        unsafe {
-            libc::getpwnam_r(
-                name.as_ptr(),
-                entry,
-                buffer.as_mut_ptr(),
-                buffer.len(),
-                result,
-            )
-        }
-    })
+    account(User::from_name(name))
 }
 
 /// The account this process runs as.
@@ -101,40 +94,19 @@ pub fn current_account() -> Option<Account> {
 }
 
 pub fn account_with_id(uid: u32) -> Option<Account> {
-    lookup(|entry, buffer, result| {
-        // SAFETY: as in `account_named`.
-        unsafe { libc::getpwuid_r(uid, entry, buffer.as_mut_ptr(), buffer.len(), result) }
-    })
+    account(User::from_uid(Uid::from_raw(uid)))
 }
 
-fn lookup(
-    call: impl FnOnce(&mut libc::passwd, &mut [c_char], &mut *mut libc::passwd) -> libc::c_int,
-) -> Option<Account> {
-    // SAFETY: `passwd` is plain C data, and all zeros is a valid value for it.
-    let mut entry: libc::passwd = unsafe { std::mem::zeroed() };
-    let mut buffer: Vec<c_char> = vec![0; PASSWD_BUFFER];
-    let mut result = null_mut();
-    if call(&mut entry, &mut buffer, &mut result) != 0 || result.is_null() {
-        return None;
-    }
-
+/// `None` for no such account, a failed lookup, or a home or shell that isn't UTF-8.
+fn account(lookup: nix::Result<Option<User>>) -> Option<Account> {
+    let user = lookup.ok()??;
     Some(Account {
-        name: text(entry.pw_name)?,
-        uid: entry.pw_uid,
-        gid: entry.pw_gid,
-        home: text(entry.pw_dir)?,
-        shell: text(entry.pw_shell)?,
+        uid: user.uid.as_raw(),
+        gid: user.gid.as_raw(),
+        home: user.dir.to_str()?.to_owned(),
+        shell: user.shell.to_str()?.to_owned(),
+        name: user.name,
     })
-}
-
-fn text(pointer: *const c_char) -> Option<String> {
-    if pointer.is_null() {
-        return None;
-    }
-    // SAFETY: the password database's strings are NUL-terminated and live in the lookup's buffer,
-    // which is still alive here.
-    let text = unsafe { CStr::from_ptr(pointer) };
-    text.to_str().ok().map(str::to_owned)
 }
 
 /// A pseudo-terminal: the agent reads and writes `controller`; the command gets `terminal` as its
@@ -147,73 +119,37 @@ pub struct Pty {
 
 #[cfg(target_os = "macos")]
 pub fn open_pty(columns: u16, rows: u16) -> io::Result<Pty> {
-    let size = window_size(columns, rows);
-    let mut controller = -1;
-    let mut terminal = -1;
-    // SAFETY: the two descriptors are locals the call writes; a null name and termios are
-    // allowed; `size` outlives the call.
-    let opened = unsafe {
-        libc::openpty(
-            &raw mut controller,
-            &raw mut terminal,
-            null_mut(),
-            null_mut(),
-            (&raw const size).cast_mut(),
-        )
+    let pair = nix::pty::openpty(&window_size(columns, rows), None)?;
+    let pty = Pty {
+        controller: File::from(pair.master),
+        terminal: File::from(pair.slave),
     };
-    if opened != 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    // SAFETY: `openpty` returned two new descriptors that nothing else owns.
-    let (controller, terminal) =
-        unsafe { (File::from_raw_fd(controller), File::from_raw_fd(terminal)) };
-    close_on_exec(&controller)?;
-    close_on_exec(&terminal)?;
-    Ok(Pty {
-        controller,
-        terminal,
-    })
+    close_on_exec(&pty.controller)?;
+    close_on_exec(&pty.terminal)?;
+    Ok(pty)
 }
 
 /// glibc before 2.34 keeps `openpty` in libutil, so the POSIX calls open the pair instead.
 #[cfg(not(target_os = "macos"))]
 pub fn open_pty(columns: u16, rows: u16) -> io::Result<Pty> {
-    // SAFETY: `posix_openpt` takes flags only and returns a new descriptor or -1.
-    let raw = unsafe { libc::posix_openpt(libc::O_RDWR | libc::O_NOCTTY | libc::O_CLOEXEC) };
-    if raw < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: `raw` is the new descriptor `posix_openpt` returned; nothing else owns it.
-    let controller = unsafe { File::from_raw_fd(raw) };
+    use std::{fs::OpenOptions, os::fd::OwnedFd, os::unix::fs::OpenOptionsExt};
 
-    // SAFETY: `controller` is an open pseudo-terminal controller.
-    if unsafe { libc::grantpt(controller.as_raw_fd()) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: as above.
-    if unsafe { libc::unlockpt(controller.as_raw_fd()) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    let mut name: [c_char; 128] = [0; 128];
-    // SAFETY: `name` is a local buffer whose length is passed with it.
-    if unsafe { libc::ptsname_r(controller.as_raw_fd(), name.as_mut_ptr(), name.len()) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    // SAFETY: `ptsname_r` wrote a NUL-terminated path into `name`.
-    let raw = unsafe {
-        libc::open(
-            name.as_ptr(),
-            libc::O_RDWR | libc::O_NOCTTY | libc::O_CLOEXEC,
-        )
+    use nix::{
+        fcntl::OFlag,
+        pty::{grantpt, posix_openpt, ptsname_r, unlockpt},
     };
-    if raw < 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: `raw` is the new descriptor `open` returned; nothing else owns it.
-    let terminal = unsafe { File::from_raw_fd(raw) };
+
+    let controller = posix_openpt(OFlag::O_RDWR | OFlag::O_NOCTTY | OFlag::O_CLOEXEC)?;
+    grantpt(&controller)?;
+    unlockpt(&controller)?;
+    // Rust opens files close-on-exec.
+    let terminal = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .custom_flags(libc::O_NOCTTY)
+        .open(ptsname_r(&controller)?)?;
+
+    let controller = File::from(OwnedFd::from(controller));
     set_terminal_size(&controller, columns, rows)?;
     Ok(Pty {
         controller,
@@ -223,15 +159,14 @@ pub fn open_pty(columns: u16, rows: u16) -> io::Result<Pty> {
 
 #[cfg(target_os = "macos")]
 fn close_on_exec(file: &File) -> io::Result<()> {
-    // SAFETY: `file` is an open descriptor; F_SETFD takes an int.
-    if unsafe { libc::fcntl(file.as_raw_fd(), libc::F_SETFD, libc::FD_CLOEXEC) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
+    use nix::fcntl::{FcntlArg, FdFlag, fcntl};
+
+    fcntl(file, FcntlArg::F_SETFD(FdFlag::FD_CLOEXEC))?;
     Ok(())
 }
 
-fn window_size(columns: u16, rows: u16) -> libc::winsize {
-    libc::winsize {
+fn window_size(columns: u16, rows: u16) -> Winsize {
+    Winsize {
         ws_row: rows,
         ws_col: columns,
         ws_xpixel: 0,
@@ -242,14 +177,8 @@ fn window_size(columns: u16, rows: u16) -> libc::winsize {
 /// Gives the command's terminal to its user, as `login` and `sshd` do, so programs that open it by
 /// its path, like `screen`, can; the group stays the terminal group, with mode 0620.
 pub fn give_terminal_to(terminal: &File, uid: u32) -> io::Result<()> {
-    // SAFETY: `terminal` is an open descriptor; a group of -1 leaves the group as it is.
-    if unsafe { libc::fchown(terminal.as_raw_fd(), uid, libc::gid_t::MAX) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
-    // SAFETY: as above.
-    if unsafe { libc::fchmod(terminal.as_raw_fd(), 0o620) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
+    fchown(terminal, Some(Uid::from_raw(uid)), None)?;
+    fchmod(terminal, Mode::from_bits_truncate(0o620))?;
     Ok(())
 }
 
@@ -282,9 +211,7 @@ pub fn start_in_own_session(
     // fork, and allocates nothing.
     unsafe {
         command.pre_exec(move || {
-            if libc::setsid() < 0 {
-                return Err(io::Error::last_os_error());
-            }
+            setsid()?;
             if has_terminal && libc::ioctl(0, TIOCSCTTY, 0) != 0 {
                 return Err(io::Error::last_os_error());
             }
@@ -352,6 +279,6 @@ pub fn kill_session(pid: u32) {
     let Ok(group) = libc::pid_t::try_from(pid) else {
         return;
     };
-    // SAFETY: `killpg` takes plain values; a group that is already gone just fails.
-    unsafe { libc::killpg(group, libc::SIGKILL) };
+    // A group that is already gone just fails.
+    killpg(Pid::from_raw(group), Signal::SIGKILL).unwrap_or(());
 }

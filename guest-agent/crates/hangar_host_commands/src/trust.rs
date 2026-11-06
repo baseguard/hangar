@@ -152,25 +152,13 @@ fn is_variable_value(value: &str) -> bool {
 
 /// `None` for anything but an even number of lowercase hex digits within the certificate limit.
 fn decode_hex(text: &str) -> Option<Vec<u8>> {
-    if text.is_empty() || !text.len().is_multiple_of(2) || text.len() > 2 * LARGEST_CERTIFICATE {
+    let is_lowercase_hex = text
+        .bytes()
+        .all(|byte| matches!(byte, b'0'..=b'9' | b'a'..=b'f'));
+    if text.is_empty() || text.len() > 2 * LARGEST_CERTIFICATE || !is_lowercase_hex {
         return None;
     }
-
-    let mut bytes = Vec::with_capacity(text.len() / 2);
-    for pair in text.as_bytes().chunks(2) {
-        let high = hex_digit(pair[0])?;
-        let low = hex_digit(pair[1])?;
-        bytes.push(high << 4 | low);
-    }
-    Some(bytes)
-}
-
-fn hex_digit(byte: u8) -> Option<u8> {
-    match byte {
-        b'0'..=b'9' => Some(byte - b'0'),
-        b'a'..=b'f' => Some(byte - b'a' + 10),
-        _ => None,
-    }
+    hex::decode(text).ok()
 }
 
 /// One DER SEQUENCE whose definite length covers every byte after its header, so nothing rides

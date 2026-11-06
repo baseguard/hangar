@@ -5,6 +5,7 @@ use std::{fs, io, os::unix::fs::PermissionsExt, process::Command};
 
 use hangar_error::{Error, Result};
 use hangar_fs::Owner;
+use hangar_sha256::Sha256;
 use hangar_sys_macos as macos;
 
 use super::{clean_up, replace_file, run_program, say, sudo::PipedSudo};
@@ -59,15 +60,7 @@ fn download_homebrew_installer(path: &str) -> Result<()> {
 }
 
 fn is_pinned_homebrew_installer(script: &[u8]) -> bool {
-    macos::sha256(script).is_some_and(|digest| hex(&digest) == HOMEBREW_DIGEST)
-}
-
-#[expect(
-    clippy::format_collect,
-    reason = "a 32-byte digest, once per setup: the plain form reads best"
-)]
-pub(super) fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+    Sha256::of(script).to_string() == HOMEBREW_DIGEST
 }
 
 /// `NONINTERACTIVE` stops the installer from asking questions; its own `sudo` calls use the
