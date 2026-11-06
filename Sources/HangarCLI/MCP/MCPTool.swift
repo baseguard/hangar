@@ -1,3 +1,5 @@
+import MCP
+
 /// A `hangar` command offered to an AI agent over MCP: its name, what it does, the arguments it takes and the command
 /// line they make.
 struct MCPTool: Sendable {
@@ -13,48 +15,43 @@ struct MCPTool: Sendable {
     var isReadOnly = false
     /// A client should ask first: it can't be undone, can lift a VM's limits or writes files on this Mac.
     var isDestructive = false
-    let properties: [String: JSONValue]
+    let properties: [String: Value]
     var required: [String] = []
     let invocation: @Sendable (MCPArguments) throws -> Invocation
 
-    var definition: JSONValue {
-        [
-            "name": .string(name),
-            "description": .string(description),
-            "inputSchema": [
-                "type": "object",
-                "properties": .object(properties),
-                "required": .array(required.map(JSONValue.string)),
-                "additionalProperties": false,
-            ],
-            "annotations": [
-                "readOnlyHint": .bool(isReadOnly),
-                "destructiveHint": .bool(isDestructive),
-            ],
+    var definition: Tool {
+        let schema: Value = [
+            "type": "object",
+            "properties": .object(properties),
+            "required": .array(required.map { .string($0) }),
+            "additionalProperties": false,
         ]
+        return Tool(
+            name: name, description: description, inputSchema: schema,
+            annotations: .init(readOnlyHint: isReadOnly, destructiveHint: isDestructive))
     }
 }
 
 /// Schema pieces for the tools' arguments.
 enum MCPSchema {
-    static func string(_ description: String) -> JSONValue {
+    static func string(_ description: String) -> Value {
         ["type": "string", "description": .string(description)]
     }
 
-    static func integer(_ description: String) -> JSONValue {
+    static func integer(_ description: String) -> Value {
         ["type": "integer", "description": .string(description)]
     }
 
-    static func boolean(_ description: String) -> JSONValue {
+    static func boolean(_ description: String) -> Value {
         ["type": "boolean", "description": .string(description)]
     }
 
-    static func strings(_ description: String) -> JSONValue {
+    static func strings(_ description: String) -> Value {
         ["type": "array", "items": ["type": "string"], "description": .string(description)]
     }
 
-    static func oneOf(_ values: [String], _ description: String) -> JSONValue {
-        ["type": "string", "enum": .array(values.map(JSONValue.string)), "description": .string(description)]
+    static func oneOf(_ values: [String], _ description: String) -> Value {
+        ["type": "string", "enum": .array(values.map { .string($0) }), "description": .string(description)]
     }
 
     static let vm = string("The VM's name, as list_vms shows it.")

@@ -20,6 +20,9 @@ Hangar.app and the `hangar` command line (Swift packages):
 | swift-crypto | 5.0.3 | Apache 2.0; bundles BoringSSL (see below) | Apple Inc. and the SwiftCrypto project authors |
 | swift-certificates | 1.21.1 | Apache 2.0 | Apple Inc. and the SwiftCertificates project authors |
 | swift-asn1 | 1.7.3 | Apache 2.0 | Apple Inc. and the SwiftASN1 project authors |
+| swift-log | 1.17.0 | Apache 2.0 | Apple Inc. and the SwiftLog project authors |
+| mcp-swift-sdk | 0.12.1 | Apache 2.0; contributions not yet relicensed stay MIT | The Model Context Protocol project contributors |
+| EventSource | 1.6.0 | MIT | 2025 Mattt |
 
 The guest agents (Rust crates; each is offered under MIT or Apache 2.0, and Hangar uses it under MIT):
 
@@ -688,6 +691,27 @@ This product contains derivations of various scripts from Swift OpenAPI Generato
     * https://github.com/apple/swift-openapi-generator
 ```
 
+#### swift-log
+
+```
+                            The SwiftLog Project
+                            ========================
+
+Please visit the SwiftLog web site for more information:
+
+  * https://github.com/apple/swift-log
+
+Copyright 2018, 2019 The SwiftLog Project
+
+This product contains a derivation of the lock implementation and various
+scripts from SwiftNIO.
+
+  * LICENSE (Apache License 2.0):
+    * https://www.apache.org/licenses/LICENSE-2.0
+  * HOMEPAGE:
+    * https://github.com/apple/swift-nio
+```
+
 ## BoringSSL
 
 swift-nio-ssl 2.37.5 bundles BoringSSL at revision 817ab07ebb53da35afea409ab9328f578492832d, under the licenses
@@ -952,7 +976,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## MIT License
 
-Applies to the Rust crates above, each with the copyright holder named in the table.
+Applies to the Rust crates above, EventSource and the mcp-swift-sdk contributions still under MIT, each with the
+copyright holder named in the tables.
 
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated

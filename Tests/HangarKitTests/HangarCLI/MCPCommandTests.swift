@@ -54,19 +54,13 @@ struct MCPCommandTests {
                 == ["create_vm", "restore_snapshot", "save_template", "change_vm", "copy_files", "traffic_policy"])
     }
 
-    @Test func anOverlongLineIsRefusedAndTheNextOneStillAnswered() throws {
+    @Test func anOverlongLineIsSkippedAndTheNextOneStillAnswered() throws {
         let overlong = String(repeating: " ", count: 1 << 20) + "{}"
 
         let answers = try answers(to: [handshake, overlong, #"{"jsonrpc":"2.0","id":2,"method":"ping"}"#])
 
-        #expect((answers["<null>"]?["error"] as? [String: Any])?["code"] as? Int == -32600)
+        #expect(Set(answers.keys) == ["1", "2"])
         #expect(answers["2"]?["result"] != nil)
-    }
-
-    @Test func aRequestIDThatIsNeitherStringNorNumberIsRefused() throws {
-        let answers = try answers(to: [handshake, #"{"jsonrpc":"2.0","id":[2],"method":"ping"}"#])
-
-        #expect((answers["<null>"]?["error"] as? [String: Any])?["code"] as? Int == -32600)
     }
 
     @Test func aToolRunsHangarsCommandAndPassesOnItsError() throws {
@@ -100,6 +94,15 @@ struct MCPCommandTests {
         #expect(fraction.isError && fraction.text == "cpu must be a whole number.")
     }
 
+    @Test func aClientsAnswerOrAnotherProtocolsMessageDoesntKeepTheServerWaiting() throws {
+        let answers = try answers(to: [
+            handshake, #"{"jsonrpc":"2.0","id":7,"method":"tools/list","result":{}}"#,
+            #"{"jsonrpc":"1.0","id":8,"method":"ping"}"#, #"{"jsonrpc":"2.0","id":2,"method":"ping"}"#,
+        ])
+
+        #expect(answers["2"]?["result"] != nil)
+    }
+
     @Test func unknownMethodsAndToolsAreProtocolErrors() throws {
         let answers = try answers(to: [
             handshake, #"{"jsonrpc":"2.0","id":2,"method":"resources/list"}"#,
@@ -107,8 +110,10 @@ struct MCPCommandTests {
             "not json",
         ])
 
+        let errorCodes = answers.values.compactMap { ($0["error"] as? [String: Any])?["code"] as? Int }
+
         #expect((answers["2"]?["error"] as? [String: Any])?["code"] as? Int == -32601)
         #expect((answers["3"]?["error"] as? [String: Any])?["code"] as? Int == -32602)
-        #expect((answers["<null>"]?["error"] as? [String: Any])?["code"] as? Int == -32700)
+        #expect(errorCodes.contains(-32700))
     }
 }

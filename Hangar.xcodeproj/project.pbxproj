@@ -33,6 +33,7 @@
 		93C909DE14F25875CD08037E /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
 		D3E94ACBDCB8064AB71D51FD /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
 		FCD722BD2F40409D83B95F70 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = A35590F9DD828628D52A2312 /* ArgumentParser */; };
+		4A219D52EC93BF9F352FBCE4 /* MCP in Frameworks */ = {isa = PBXBuildFile; productRef = 5C2B2FFC0E5689406BF1EB42 /* MCP */; };
 		378301FFC5D583D39A55B12B /* libHangarSupport.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */; };
 		2548F8ED68715EDD28D7E58E /* HangarShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5483DD08DAB580007E4241AF /* HangarShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -297,6 +298,7 @@
 			files = (
 				8D5EFF064BCA7676212F5CCE /* HangarKit.framework in Frameworks */,
 				FCD722BD2F40409D83B95F70 /* ArgumentParser in Frameworks */,
+				4A219D52EC93BF9F352FBCE4 /* MCP in Frameworks */,
 			);
 		};
 		709F034B96517FDC738AE032 /* Frameworks */ = {
@@ -447,6 +449,7 @@
 			name = HangarCLI;
 			packageProductDependencies = (
 				A35590F9DD828628D52A2312 /* ArgumentParser */,
+				5C2B2FFC0E5689406BF1EB42 /* MCP */,
 			);
 			productName = HangarCLI;
 			productReference = 288AD5D350B37DACDC215FE8 /* HangarCLI.app */;
@@ -658,6 +661,7 @@
 				A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "swift-nio-http2" */,
 				179EB46E24CCC7AC0C3997BB /* XCRemoteSwiftPackageReference "swift-certificates" */,
 				6E78409D34F2A54249F8807E /* XCRemoteSwiftPackageReference "swift-crypto" */,
+				E074CFAF75D9AF3D1B5D39A8 /* XCRemoteSwiftPackageReference "swift-sdk" */,
 			);
 			preferredProjectObjectVersion = 110;
 			productRefGroup = 3B6D4E977F74F9D651E03C8E /* Products */;
@@ -1540,9 +1544,22 @@
 				minimumVersion = 1.46.0;
 			};
 		};
+		E074CFAF75D9AF3D1B5D39A8 /* XCRemoteSwiftPackageReference "swift-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/modelcontextprotocol/swift-sdk";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.12.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5C2B2FFC0E5689406BF1EB42 /* MCP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E074CFAF75D9AF3D1B5D39A8 /* XCRemoteSwiftPackageReference "swift-sdk" */;
+			productName = MCP;
+		};
 		B2C3D4E5F60718293A4B5C6D /* NIOHTTP2 */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "swift-nio-http2" */;
