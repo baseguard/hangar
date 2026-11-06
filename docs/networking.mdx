@@ -1,0 +1,39 @@
+---
+title: Networking
+description: The three networks a VM can have, and Hangar's own network.
+section: Network
+order: 1
+---
+
+# Networking
+
+Every VM gets one of three networks. Pick it with `--network` when you create the VM, or change it later with
+`hangar set`.
+
+## Modes
+
+| Mode | `--network` | |
+|---|---|---|
+| Hangar Managed (default) | `managed` | NAT through Hangar's network: allow and block lists, isolation, a stable address, VMs can reach each other |
+| NAT | `nat` | The system's NAT: internet and this Mac, no traffic rules, VMs can't reach each other |
+| None | `none` | No network |
+
+Only Hangar Managed VMs get [traffic rules](traffic-rules.mdx).
+
+## Hangar's network
+
+Hangar's network is run by a small daemon. See it and manage it with:
+
+```sh
+hangar network status
+hangar network stop
+hangar network set --subnet 10.80.0.1/24
+```
+
+> After updating Hangar while VMs were running, shut them down (`hangar stop --all`), run `hangar network stop` and
+> start them again.
+
+## VPNs
+
+A VPN that routes Hangar's subnet without giving this Mac an address in it isn't noticed. If VMs lose connections
+while a VPN is on, move Hangar's network with `hangar network set --subnet`.

@@ -1,0 +1,79 @@
+---
+title: Snapshots and images
+description: Snapshots, clones, and sharing a VM through a registry or a file.
+section: Use
+order: 2
+---
+
+# Snapshots and images
+
+Snapshots are APFS copy-on-write copies of the disk: instant, and they only take space as the disk changes.
+
+## Snapshots
+
+```sh
+hangar snapshot take <vm> <name>
+hangar snapshot list <vm>
+hangar snapshot restore <vm> <name>
+hangar snapshot rename <vm> <name> <new-name>
+hangar snapshot delete <vm> <name>
+```
+
+For `take` the name is optional; it defaults to the date and time. `delete` takes several names at once.
+
+A snapshot keeps the disk, not the memory, on every guest OS: a VM restored to a snapshot starts up fresh. Taking one
+while the VM runs pauses it for a moment.
+
+## Clones
+
+A snapshot also works as a starting point: new VMs made from it start up fresh, with their own MAC address, IP address
+and machine identity, while the source keeps running.
+
+```sh
+hangar snapshot take base clean
+hangar clone base web1 --snapshot clean
+hangar clone base web2 --snapshot clean
+```
+
+Copy VMs this way, not by duplicating their folders in Finder: two copies made outside Hangar share one identity,
+network address and secrets, so neither starts. Start one of them in the Hangar app to make it a separate VM, or
+delete one.
+
+## Share a VM through a registry
+
+Push a macOS, Linux or Windows VM, or one of its snapshots, to a registry your team uses, and create VMs from it
+anywhere by its tag. It's an OCI image, so the container registry you already run (GitHub, GitLab, Docker Hub, Harbor,
+Quay) takes it with no extra setup.
+
+```sh
+hangar login ghcr.io -u <name>
+hangar export base ghcr.io/acme/ci-linux:1.0 --snapshot clean
+hangar create ci1 --os linux --image ghcr.io/acme/ci-linux:1.0
+```
+
+The sign-in is kept in your Keychain. In the app, choose **Export…** in a VM's or a snapshot's menu, and
+create VMs with **New Virtual Machine › From an Image**.
+
+> The whole disk goes into the image, with its accounts, password hashes and SSH host keys, so clean it up first. On
+> Linux also empty `/etc/machine-id` (`sudo truncate -s0 /etc/machine-id`) so each VM gets its own. Share a snapshot
+> taken while the VM was shut down.
+
+Linux VMs made from an image get new SSH host keys and their own name through cloud-init on their first start. A macOS
+VM made from an image keeps the accounts that were set up in it, so `--user` doesn't go with it. Pulling a newer image
+of the same repository replaces the older one in the cache; VMs already made from it keep working.
+
+Downloads that stop carry on where they stopped, and `--chunk-size <mb>` uploads in pieces for registries that limit
+request size. For a registry without HTTPS, add `--insecure`: your sign-in then travels in the clear and a tag can be
+changed on the way, though every part is still checked against the image's digest.
+
+## Share a VM as a file
+
+Without a registry, save the image to a file and create VMs from that; a value ending in `.tar` is always a file.
+
+```sh
+hangar export base ~/ci-linux.tar
+hangar create ci1 --os linux --image ~/ci-linux.tar
+```
+
+In the app, choose **File** in the **Export…** sheet, and **Choose File…** in
+**New Virtual Machine › From an Image**.

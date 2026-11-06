@@ -1,0 +1,15 @@
+[package]
+name = "hangar_exec_frames"
+version.workspace = true
+description = "The frames hangar exec sends between the host and the guest agent, one vsock connection per command"
+categories = ["virtualization"]
+keywords = ["hangar", "guest", "agent"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true

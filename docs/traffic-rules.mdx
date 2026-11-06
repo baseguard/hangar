@@ -1,0 +1,114 @@
+---
+title: Traffic rules
+description: Watch every connection a VM makes from outside the guest, and decide which ones get through.
+section: Network
+order: 2
+---
+
+# Traffic rules
+
+Hangar watches every Hangar Managed VM from the Mac, outside the guest, so software in the VM can't hide from it: DNS
+lookups, connections with their host names (from DNS, TLS and HTTP), bytes in and out, and what was blocked. For HTTPS
+it sees the host name, not the URL.
+
+In the app, open a VM's **Traffic** tab; its **Rules** section edits the lists.
+
+## Modes
+
+| Mode | |
+|---|---|
+| `monitor` (default) | Record everything, block nothing |
+| `allowlist` | Block everything except the allowed hosts |
+| `blocklist` | Allow everything except the blocked hosts |
+| `off` | Don't watch |
+
+## Rules
+
+A rule is a host with its subdomains (`github.com`), only its subdomains (`*.github.com`), or a network
+(`140.82.112.0/20`). Rules apply to a running VM at once.
+
+With an allow or block list, other VMs, services on this Mac and your local network (every private address, like
+`192.168.1.0/24`) are blocked unless you allow them (`--vms on`, `--host on`, `--local-network on`); an allowed
+network such as `192.168.1.20` opens just that part.
+
+To let only some VMs talk to each other, allow their addresses instead of turning on `--vms`: an allowed address or
+range inside Hangar's network (see `hangar network status`) opens just those VMs. A wider range, such as
+`192.168.0.0/16` for your local network, doesn't open the VMs in it. When both VMs have rules, each must allow the
+other.
+
+```sh
+hangar policy web --mode allowlist --allow 192.168.72.11 --allow github.com
+hangar policy db --mode allowlist --allow 192.168.72.10
+```
+
+QUIC (HTTP/3) is blocked in these modes too unless you allow it (`--quic on`), because it hides host names, and
+`--udp off` blocks all UDP but DNS through this Mac.
+
+## Try it
+
+```sh
+hangar traffic kestrel --follow
+hangar policy kestrel --mode allowlist --allow github.com --allow '*.npmjs.org'
+hangar policy kestrel --udp off
+hangar policy kestrel --remove github.com
+```
+
+```text
+02:39:41  allow  tcp     github.com           140.82.121.3:443     ↑2 KB ↓570 KB
+02:39:42  BLOCK  dns     example.com A                             example.com is not allowed
+02:39:43  BLOCK  udp     1.1.1.1              1.1.1.1:443          QUIC is blocked
+```
+
+`hangar traffic` also takes `--blocked` (only what was blocked), `--summary` (totals per host) and `--json` (one event
+per line, for scripts).
+
+The Traffic tab shows the latest 5,000 events. **Export Log…** under its list saves the whole log as a JSON Lines file
+(`.jsonl`), one event per line, oldest first. Hangar keeps up to 64 MB of log per VM and drops the oldest events past
+that.
+
+In every mode, `off` included, Hangar drops frames in which a Hangar Managed VM claims another MAC or IP address, and
+DHCP replies sent by VMs, so one VM can't take over another's traffic.
+
+## Isolate
+
+**Isolate** cuts the VM off at once from everything but this Mac. The shared clipboard and shared folders still work.
+
+```sh
+hangar policy kestrel --isolate on
+```
+
+## Rules files
+
+A VM's rules can be saved and shared as a JSON file: the mode, the allowed and blocked hosts, and what the VM may
+reach. Isolation isn't part of it.
+
+In the VM's **Traffic** tab, **Rules File** exports the rules, or imports them from a file or from an `https://`
+address (**Import… › Import from URL…**). Hangar shows what would change and asks before it replaces anything.
+
+```json
+{
+  "allowed": ["github.com", "*.npmjs.org"],
+  "allowsHost": false,
+  "allowsLocalNetwork": false,
+  "allowsQUIC": false,
+  "allowsUDP": true,
+  "allowsVMs": false,
+  "blocked": [],
+  "mode": "allowlist"
+}
+```
+
+A file can be at most 1 MB, and a VM can have at most 1000 rules.
+
+## Limits
+
+- **The allow list is the protection.** A block list only stops connections that name a blocked host, so a program
+  that connects to an address directly, with another host name or none, gets through.
+- A host behind the same CDN address as an allowed one may be reachable. For HTTPS and for HTTP connections upgraded to
+  WebSocket, Hangar checks the name the connection opens with, not what is sent inside it.
+- With an allow or block list, DNS goes only through this Mac; in the allow list mode DNS over TCP is blocked. IPv6 is
+  dropped in every mode. `monitor` records everything and blocks nothing.
+- A VPN that routes Hangar's subnet without giving this Mac an address in it isn't noticed; if VMs lose connections
+  while a VPN is on, move Hangar's network (`hangar network set --subnet`).
+- Hangar doesn't watch or check VMs on NAT, so they can pretend to be each other's address on the system's NAT
+  network.

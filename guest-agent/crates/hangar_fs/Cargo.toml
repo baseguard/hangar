@@ -1,0 +1,24 @@
+[package]
+name = "hangar_fs"
+version.workspace = true
+description = "A folder handle that only touches its direct children and never follows a link"
+categories = ["filesystem"]
+keywords = ["hangar", "folder", "symlink"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+hangar_error.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,29 @@
+# editor directories and files
+.idea
+.run
+.DS_Store
+
+# others
+dist
+config*.json
+.private
+target/
+.build/
+dist/
+DerivedData/
+Resources/Guest/linux/hangar-agent
+Resources/Guest/windows/hangar-agent.exe
+Resources/Guest/macos/hangar-agent
+
+# Xcode
+xcuserdata/
+
+# VM media and disk images
+*.dmg
+*.iso
+*.ipsw
+*.img
+
+# ai
+.claude
+CLAUDE.md

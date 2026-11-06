@@ -1,0 +1,61 @@
+---
+title: Building the macOS images
+description: How Hangar's vanilla, base and xcode images are built and published.
+section: Project
+order: 1
+---
+
+# Building the macOS images
+
+Hangar pulls its macOS images from the moving tags `vanilla`, `base` and `xcode` of `ghcr.io/baseguard/hangar-macos`.
+Pushing new images to those tags publishes them: every Hangar picks them up on its next pull, with no app release.
+
+The images are built on an Apple silicon Mac running macOS 27 or later. A VM can't run another macOS VM, so cloud CI
+runners can't build them.
+
+## Build and push
+
+Use the signed and notarized Hangar in `/Applications`: the image gets the agent bundled in it, and preparing the first
+start runs Hangar's own binary as root. Sign in with a token that can write packages, then build in order:
+
+```sh
+hangar login ghcr.io -u <name>
+hangar image build vanilla --push ghcr.io/baseguard/hangar-macos
+hangar image build base --push ghcr.io/baseguard/hangar-macos
+hangar image build xcode --xcode /Applications/Xcode.app --push ghcr.io/baseguard/hangar-macos
+```
+
+Each push tags the image twice, for example `base-27.0.1` and `base`; Hangar uses the short tag. The first time, make
+the package public in its GitHub settings, or no one can pull it without signing in.
+
+| When this changes | Rebuild |
+|---|---|
+| macOS | `vanilla`, `base`, `xcode` |
+| Hangar's agent | `base`, `xcode` |
+| Xcode | `xcode` |
+
+## How they fit together
+
+- `vanilla` is the latest macOS installed and never started. `--ipsw <file|url>` picks another macOS.
+- `base` is a copy of it with the account `admin`.
+- `xcode` is a copy of `base` with Xcode.
+
+So most of their parts are the same, and a push only uploads the parts the registry doesn't have yet.
+
+## Xcode
+
+`--xcode` takes an `Xcode.app` on this Mac; it's copied into the image as it is, so the image gets that version. To use
+a `.xip` from Apple, expand it first with `xip --expand Xcode.xip`. On the first start the image accepts the license,
+runs Xcode's first launch and downloads the iOS platform.
+
+## The first start
+
+For `base` and `xcode`, `sudo hangar image prepare` writes a one-time job into the copy's disk. It runs Hangar's own
+binary as root, so use a build you trust (macOS protects a notarized Hangar in `/Applications` from being changed by
+other apps).
+
+On the first start the job installs what's missing: the Command Line Tools, Homebrew (as `admin`, with a sudo rule
+removed right after), Xcode, and Hangar's agent, removes the SSH host keys, so each VM made from the image makes its
+own on its first SSH connection, sets the time zone to GMT, and erases the system log, which can hold names the guest
+saw on the builder's network. Then it deletes itself. `hangar image verify` checks
+that nothing is left over, host keys included, before the disk is pushed.

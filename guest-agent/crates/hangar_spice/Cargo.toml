@@ -1,0 +1,15 @@
+[package]
+name = "hangar_spice"
+version.workspace = true
+description = "The clipboard part of the SPICE vdagent protocol, plain UTF-8 text only"
+categories = ["virtualization", "encoding"]
+keywords = ["hangar", "spice", "clipboard"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,41 @@
+name: Guest agent tools
+description: Installs the pinned Rust toolchain, zig, cargo-zigbuild and cargo-audit that `make agents` needs.
+
+runs:
+  using: composite
+  steps:
+    # The runner image has rustup; this adds the toolchain, components and targets in rust-toolchain.toml.
+    - name: Install the Rust toolchain
+      shell: bash
+      run: cd guest-agent && rustup toolchain install
+
+    - name: Install zig, cargo-zigbuild and cargo-audit
+      shell: bash
+      env:
+        ZIG_VERSION: 0.17.0
+        ZIG_SHA256: b607e9b9234790a008116ae5bdb71c6243b84b9fb42a53a9e70fde41c06c536a
+        ZIGBUILD_VERSION: 0.24.0
+        ZIGBUILD_SHA256: c88f9b9da35cb67b151dad4384614f769b1b2b5d30630e381c4e9c2b28ed349e
+        CARGO_AUDIT_VERSION: 0.22.2
+        CARGO_AUDIT_SHA256: ec7ca4263769593df4d909be85b94a6b79efa2897be5d2bb8ebd516e823175af
+      run: |
+        set -euo pipefail
+        tools="$RUNNER_TEMP/agent-tools"
+        mkdir -p "$tools"
+
+        # Downloads an archive, checks it against its pinned SHA-256 and unpacks it into $tools.
+        download() {
+          local url="$1" sha256="$2"
+          local archive="$RUNNER_TEMP/$(basename "$url")"
+          curl --proto '=https' --tlsv1.2 -fsSL -o "$archive" "$url"
+          echo "$sha256  $archive" | shasum -a 256 -c -
+          tar -xf "$archive" -C "$tools"
+        }
+
+        download "https://ziglang.org/download/$ZIG_VERSION/zig-aarch64-macos-$ZIG_VERSION.tar.xz" "$ZIG_SHA256"
+        download "https://github.com/rust-cross/cargo-zigbuild/releases/download/v$ZIGBUILD_VERSION/cargo-zigbuild-aarch64-apple-darwin.tar.xz" "$ZIGBUILD_SHA256"
+        download "https://github.com/rustsec/rustsec/releases/download/cargo-audit/v$CARGO_AUDIT_VERSION/cargo-audit-aarch64-apple-darwin-v$CARGO_AUDIT_VERSION.tgz" "$CARGO_AUDIT_SHA256"
+
+        echo "$tools/zig-aarch64-macos-$ZIG_VERSION" >> "$GITHUB_PATH"
+        echo "$tools/cargo-zigbuild-aarch64-apple-darwin" >> "$GITHUB_PATH"
+        echo "$tools/cargo-audit-aarch64-apple-darwin-v$CARGO_AUDIT_VERSION" >> "$GITHUB_PATH"

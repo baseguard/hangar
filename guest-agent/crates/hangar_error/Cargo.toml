@@ -1,0 +1,15 @@
+[package]
+name = "hangar_error"
+version.workspace = true
+description = "The guest agent's one error type, whose messages are what the user sees"
+categories = ["rust-patterns"]
+keywords = ["hangar", "error"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true

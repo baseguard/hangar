@@ -1,0 +1,18 @@
+[package]
+name = "hangar_sys_unix"
+version.workspace = true
+description = "Unix system calls for hangar exec: the vsock port, accounts, pseudo-terminals and a command's own session"
+categories = ["os::unix-apis"]
+keywords = ["hangar", "pty", "exec"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[lints]
+workspace = true

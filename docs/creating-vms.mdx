@@ -1,0 +1,107 @@
+---
+title: Creating VMs
+description: Create macOS, Linux and Windows 11 VMs from Hangar's images, IPSWs, ISOs, cloud images or a registry.
+section: Start
+order: 3
+---
+
+# Creating VMs
+
+Pick a guest, pick where it installs from, and Hangar does the rest.
+
+## Recipes
+
+| I want… | Run |
+|---|---|
+| macOS with my own account | `hangar create mac --os macos --user dev` |
+| macOS with Homebrew (or Xcode) ready | `hangar create mac --os macos --image base` (or `--image xcode`) |
+| macOS from an IPSW | `hangar create mac --os macos --ipsw ~/Downloads/UniversalMac_Restore.ipsw --user dev` |
+| Debian or Ubuntu, ready in seconds | `hangar create deb --os linux --image debian` (or `--image ubuntu`; user `admin`, password `admin`) |
+| Linux from a cloud image | `hangar create deb --os linux --user dev --disk-image https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-arm64.qcow2` |
+| Linux from an installer ISO | `hangar create deb --os linux --iso ~/Downloads/debian-13-arm64-netinst.iso`, then `hangar run deb` |
+| Windows 11 | `hangar create win --os windows --iso ~/Downloads/Win11_arm64.iso --user admin` |
+| A copy of a VM | `hangar clone deb deb2` |
+| A VM from your team's image | `hangar create ci --os linux --image ghcr.io/acme/ci:1.0` |
+| A VM from a template | `hangar create go --template go-dev.hangarvm` (see [Templates](templates.mdx)) |
+
+You're asked for a password, or give it on standard input with `--password-stdin`. Set the size with `--cpu`,
+`--memory` and `--disk` (GB). Disks only use the space they need.
+
+## Guests and defaults
+
+| Guest | Installs from | CPU | Memory | Disk |
+|---|---|---|---|---|
+| macOS | Hangar's image (`--image vanilla` by default, `base` or `xcode`), or an IPSW (`--ipsw`: a file, an https URL or `latest` from Apple) | 4 | 8 GB | 80 GB |
+| Linux | An ISO (`--iso`), a cloud image (`--disk-image`, file or https URL), or an image in a registry (`--image`) | 2 | 4 GB | 20 GB |
+| Windows 11 on Arm | The official Arm64 ISO (`--iso`), installed unattended, or an image in a registry (`--image`) | 4 | 8 GB | 64 GB |
+
+## Accounts
+
+macOS, Windows and Linux cloud images create `--user` on their first start. For cloud images Hangar writes a small
+cloud-init disk that holds only a hash of the password; add `--ssh-key ~/.ssh/id_ed25519.pub` to sign in with your
+key. Hangar's `base` and `xcode` images come with their own account, so `--user` doesn't go with them.
+
+A macOS account logs in automatically and has Remote Login (SSH) on; `--no-auto-login` and `--no-ssh` leave either
+off.
+
+Cloud images can be raw or qcow2, like Debian's and Ubuntu's.
+
+## Hangar's macOS images
+
+| Image | What's inside |
+|---|---|
+| `vanilla` | The latest macOS as Apple installs it, never started, so your account is created on its first start. New macOS VMs use it unless you pick an IPSW. |
+| `base` | Adds the Command Line Tools, Homebrew and Hangar's agent. |
+| `xcode` | Adds Xcode with the iOS platform to `base`. |
+
+`base` and `xcode` have the administrator `admin` with the password `admin`, which logs in automatically and uses
+`sudo` without a password. Remote Login (SSH) is on, the time zone is GMT, and the VM never sleeps or locks its
+screen. Change the password in the VM's System Settings.
+
+Each image builds on the one before, and parts a VM already has from another image are copied from your Mac instead
+of downloaded. They live at `ghcr.io/baseguard/hangar-macos:vanilla`, `:base` and `:xcode`. Hangar pins the tag to a
+digest once, checks every byte against the digests in that manifest, and never opens a downloaded disk on your Mac.
+
+## Hangar's Debian and Ubuntu
+
+**New Virtual Machine › Linux**, or `hangar create <vm> --os linux --image debian` (or `ubuntu`), downloads the
+latest Debian 13 or Ubuntu 26.04 LTS cloud image once from its publisher and checks it against the checksum list
+published next to it (integrity, not authenticity). The VM gets Hangar's agent and the administrator `admin` with
+the password `admin`.
+
+## Your own cloud-init
+
+`--cloud-init user-data.yaml` adds your `#cloud-config` (packages, files, commands) or a `#!` script next to Hangar's
+account. Leave out `--user` to set up every account yourself.
+
+## Windows
+
+Hangar reads the Windows ISO on this Mac to build the installation media, so use the official ISO from Microsoft; the
+media the installer writes back is never mounted here.
+
+Windows VMs come with Remote Desktop on; `--no-remote-desktop`, or the switch in the app, keeps it off.
+
+## Images from a registry or a file
+
+`--image ghcr.io/acme/ci:1.0` creates a VM from an image your team pushed with `hangar export`, and
+`--image ~/ci-linux.tar` from one saved to a file (see [Snapshots and images](snapshots.mdx)). In the app, that's
+**New Virtual Machine › From an Image**. Sign in first with `hangar login` if the image is private. For a registry
+without HTTPS, add `--insecure`; the image's parts are still checked against its digest.
+
+## Downloads
+
+macOS images, IPSWs, ISOs and cloud images are downloaded once over https and cached in `~/.hangar/cache`. The
+newest installed macOS is kept too, so the next macOS VM is a copy that's ready in seconds.
+
+See and delete them in **Settings › Downloads**, or delete the ones you haven't used for a while:
+
+```sh
+hangar prune --older-than 30
+```
+
+## ISOs later
+
+Attach or detach an ISO for a macOS or Linux VM in the **Virtual Machine** menu or with `hangar set <vm> --iso`;
+macOS mounts it like a disk. A VM that Hangar started in a window without an ISO can change it while it runs.
+
+Windows can't read ISOs here, as it needs a CD drive and VMs on a Mac don't have one.

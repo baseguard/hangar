@@ -1,0 +1,18 @@
+[package]
+name = "hangar_clipboard_link"
+version.workspace = true
+description = "The guest's side of the shared clipboard that every guest system shares: reader and connection"
+categories = ["virtualization"]
+keywords = ["hangar", "spice", "clipboard"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+hangar_spice.workspace = true
+
+[lints]
+workspace = true

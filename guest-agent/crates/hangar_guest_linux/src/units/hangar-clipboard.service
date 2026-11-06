@@ -1,0 +1,13 @@
+[Unit]
+Description=Hangar clipboard: shares copied text with the Mac
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=DISPLAY
+
+[Service]
+Environment=GDK_DISABLE=gl,vulkan
+ExecStart=/usr/local/libexec/hangar-agent clipboard
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

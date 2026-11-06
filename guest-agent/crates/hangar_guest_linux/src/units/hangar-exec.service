@@ -1,0 +1,11 @@
+[Unit]
+Description=Hangar exec: runs the commands hangar exec sends, as the user at the screen or the VM's account
+
+# Unlike hangar-agent.service, no sandbox: the commands it starts are the user's own and need their
+# home, the network and sudo.
+[Service]
+ExecStart=/usr/local/libexec/hangar-agent exec
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

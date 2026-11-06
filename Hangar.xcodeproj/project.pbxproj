@@ -1,0 +1,1599 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4B40FDD288F43EB4366D2C26 /* libHangarDisks.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA1A4A6E6C443B3D451AE876 /* libHangarDisks.a */; };
+		6BBFC8202711A9F0CA5945E3 /* libHangarTraffic.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 01D4B81DB60D9A8CF0B50E0F /* libHangarTraffic.a */; };
+		549C966F15EB9F5AEBFA628F /* libHangarSecrets.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B8B42F96C9E730CE6FF96AA /* libHangarSecrets.a */; };
+		AA4DF1C27A5D7089B4ADA345 /* libHangarPackets.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5336BEB203F2A1EF45E5653D /* libHangarPackets.a */; };
+		5DC4634F87688DC73AEA5937 /* libHangarSupport.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */; };
+		40A005F7620C2B6897FCB8B8 /* HangarKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7D6EDE9C6BBEB7BE947C8339 /* NIOTLS in Frameworks */ = {isa = PBXBuildFile; productRef = 677B97B15C1103968BA60633 /* NIOTLS */; };
+		D22579C8643916B6577ECA13 /* SwiftASN1 in Frameworks */ = {isa = PBXBuildFile; productRef = F4C796687A99957FB1BEE9C3 /* SwiftASN1 */; };
+		288C9A1182F78A3465E80374 /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B52A3115C23D69DF3A5333F /* NIOCore */; };
+		E305F3523AD844928960BEA7 /* NIOPosix in Frameworks */ = {isa = PBXBuildFile; productRef = A5302FDFBF767B86FF9376E4 /* NIOPosix */; };
+		531636C0B59390403762A149 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = 86FA7A6D71B33437E0F0F6A5 /* NIOHTTP1 */; };
+		0451D4ED821358EF7D1B4A11 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 70255F56E7D8ADC8880186CC /* NIOSSL */; };
+		C3D4E5F60718293A4B5C6D7E /* NIOHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = B2C3D4E5F60718293A4B5C6D /* NIOHTTP2 */; };
+		16B5516B25F5921C6F92F5E3 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = D1A9FC1D0178E5E376AEAF5F /* X509 */; };
+		3CE218901F6A55B979298F04 /* Crypto in Frameworks */ = {isa = PBXBuildFile; productRef = 457A85D982F85B0137B55F0C /* Crypto */; };
+		40888E76A2AEBE482FEED42D /* Guest in Resources */ = {isa = PBXBuildFile; fileRef = F9377AEF16E6D08A5CBA2DF0 /* Guest */; };
+		D113E2194A22CEFDB76D2E20 /* Guest in Resources */ = {isa = PBXBuildFile; fileRef = F9377AEF16E6D08A5CBA2DF0 /* Guest */; };
+		010F32C7A90898287ED77210 /* HangarCLI.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 288AD5D350B37DACDC215FE8 /* HangarCLI.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2295D7CEC0A7A212B1233BDF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 07C1AC0FB60667C9DA313561 /* AppIcon.icon */; };
+		358A6BAA9EFFF4970C12D2BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C93F0857642CFF15852E7E54 /* Assets.xcassets */; };
+		96D3349694E94C77ACB9E494 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = D333FC7C393C48079AAFE59F /* LICENSE.md */; };
+		AB72131F64A5458296B6B9E5 /* THIRD-PARTY-LICENSES.md in Resources */ = {isa = PBXBuildFile; fileRef = 2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */; };
+		8D5EFF064BCA7676212F5CCE /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
+		93C909DE14F25875CD08037E /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
+		D3E94ACBDCB8064AB71D51FD /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
+		FCD722BD2F40409D83B95F70 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = A35590F9DD828628D52A2312 /* ArgumentParser */; };
+		378301FFC5D583D39A55B12B /* libHangarSupport.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */; };
+		2548F8ED68715EDD28D7E58E /* HangarShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5483DD08DAB580007E4241AF /* HangarShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DA640E7CBCDC271FF7B279E5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+		9FC1E0EE7817B8E58FEACFA1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A6511AC5AE55611370C63C5;
+			remoteInfo = HangarPackets;
+		};
+		4727304EA7961643E194EA7E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 251D7E1B9FC793DE39721955;
+			remoteInfo = HangarTraffic;
+		};
+		02A4778D536A126B1E1D3023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B2D0EAE99ADA722C85FCAFB6;
+			remoteInfo = HangarSecrets;
+		};
+		3F3547F024B51A08E40D32AE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5CEC5708F52D374B5186DE08;
+			remoteInfo = HangarCLI;
+		};
+		89D6E3703DF478A8B0DED997 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01273601DF03B1E72CFAAC80;
+			remoteInfo = HangarKit;
+		};
+		B107B958FB6416C9D9CDDCE7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01273601DF03B1E72CFAAC80;
+			remoteInfo = HangarKit;
+		};
+		C4F9948B16E8B7047560300F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 01273601DF03B1E72CFAAC80;
+			remoteInfo = HangarKit;
+		};
+		0766394AFDA0C8DEF8F00C73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+		F9CE8F5B0020FE5E17EABA73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+		159EC19779D02229C3AED613 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A6511AC5AE55611370C63C5;
+			remoteInfo = HangarPackets;
+		};
+		36FB61E801F272F4CB105097 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A6511AC5AE55611370C63C5;
+			remoteInfo = HangarPackets;
+		};
+		8B705ABD84CFA7F3CD87DFCF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+		F84EFC1AD099D133840037E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 251D7E1B9FC793DE39721955;
+			remoteInfo = HangarTraffic;
+		};
+		5806B4B44F5E349BB82F70B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+		5ABEFB9ED5E9441E366BD11B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CBA1990F78D30935B8FAD328;
+			remoteInfo = HangarDisks;
+		};
+		DAF5E7012CDDB43727A2C268 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3507607E8A5FEDFA80212705;
+			remoteInfo = HangarShare;
+		};
+		30100063FDD1B94386C46CA5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 070A985CABCFA335961E390C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9867B88A7CC8629105F0A486;
+			remoteInfo = HangarSupport;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F50A4F88A16133E220EB4D45 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Frameworks;
+			files = (
+				40A005F7620C2B6897FCB8B8 /* HangarKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+		};
+		9A6FD77B2C182526875C7B6A /* Embed Dependencies */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = Contents/Helpers;
+			dstSubfolder = Wrapper;
+			files = (
+				010F32C7A90898287ED77210 /* HangarCLI.app in Embed Dependencies */,
+			);
+			name = "Embed Dependencies";
+		};
+		65C7D622FCC8ABB8153477E7 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = PlugIns;
+			files = (
+				2548F8ED68715EDD28D7E58E /* HangarShare.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2B8B42F96C9E730CE6FF96AA /* libHangarSecrets.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarSecrets.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D333FC7C393C48079AAFE59F /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = THIRD-PARTY-LICENSES.md; sourceTree = "<group>"; };
+		F9377AEF16E6D08A5CBA2DF0 /* Guest */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Guest; sourceTree = "<group>"; };
+		07C1AC0FB60667C9DA313561 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		288AD5D350B37DACDC215FE8 /* HangarCLI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HangarCLI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56D295A0F8169A975822F96D /* HangarKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HangarKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5DC3005888DBC9B44B5697E /* Hangar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hangar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C93F0857642CFF15852E7E54 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HangarKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarSupport.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5336BEB203F2A1EF45E5653D /* libHangarPackets.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarPackets.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		01D4B81DB60D9A8CF0B50E0F /* libHangarTraffic.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarTraffic.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA1A4A6E6C443B3D451AE876 /* libHangarDisks.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarDisks.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		5483DD08DAB580007E4241AF /* HangarShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HangarShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		33E3E7EE4A843FBAB40D58D7 /* Sources/HangarSecrets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarSecrets;
+			sourceTree = "<group>";
+		};
+		51FF1E9CE56AC6FADD1B35E3 /* Sources/HangarKit */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarKit;
+			sourceTree = "<group>";
+		};
+		7C15A01002EDFA266FAC3D87 /* Tests/HangarKitTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tests/HangarKitTests;
+			sourceTree = "<group>";
+		};
+		8BFF153061BE28579A66C601 /* Sources/HangarApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarApp;
+			sourceTree = "<group>";
+		};
+		E87E522CCC499202C1CB80A0 /* Sources/HangarCLI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarCLI;
+			sourceTree = "<group>";
+		};
+		D8901FE9B1CD17005FB57165 /* Sources/HangarSupport */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarSupport;
+			sourceTree = "<group>";
+		};
+		CFF42E42F46D01631EEF36D7 /* Sources/HangarPackets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarPackets;
+			sourceTree = "<group>";
+		};
+		D0479A58B05353986E65CEA4 /* Sources/HangarTraffic */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarTraffic;
+			sourceTree = "<group>";
+		};
+		34B9179746BC5030A21D5A1B /* Sources/HangarDisks */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarDisks;
+			sourceTree = "<group>";
+		};
+		21021434DC975F064CF09447 /* Sources/HangarShare */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources/HangarShare;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1238641F2B87CC002FDA6587 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				4B40FDD288F43EB4366D2C26 /* libHangarDisks.a in Frameworks */,
+				6BBFC8202711A9F0CA5945E3 /* libHangarTraffic.a in Frameworks */,
+				549C966F15EB9F5AEBFA628F /* libHangarSecrets.a in Frameworks */,
+				AA4DF1C27A5D7089B4ADA345 /* libHangarPackets.a in Frameworks */,
+				5DC4634F87688DC73AEA5937 /* libHangarSupport.a in Frameworks */,
+			);
+		};
+		9C37B43B66B0403EF4262292 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				288C9A1182F78A3465E80374 /* NIOCore in Frameworks */,
+				E305F3523AD844928960BEA7 /* NIOPosix in Frameworks */,
+				531636C0B59390403762A149 /* NIOHTTP1 in Frameworks */,
+				7D6EDE9C6BBEB7BE947C8339 /* NIOTLS in Frameworks */,
+				0451D4ED821358EF7D1B4A11 /* NIOSSL in Frameworks */,
+				C3D4E5F60718293A4B5C6D7E /* NIOHTTP2 in Frameworks */,
+				16B5516B25F5921C6F92F5E3 /* X509 in Frameworks */,
+				D22579C8643916B6577ECA13 /* SwiftASN1 in Frameworks */,
+				3CE218901F6A55B979298F04 /* Crypto in Frameworks */,
+			);
+		};
+		00F5283C4EB4C7639383A4BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				8D5EFF064BCA7676212F5CCE /* HangarKit.framework in Frameworks */,
+				FCD722BD2F40409D83B95F70 /* ArgumentParser in Frameworks */,
+			);
+		};
+		709F034B96517FDC738AE032 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				93C909DE14F25875CD08037E /* HangarKit.framework in Frameworks */,
+			);
+		};
+		D4675C21BEE70A2D87BD94F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				D3E94ACBDCB8064AB71D51FD /* HangarKit.framework in Frameworks */,
+			);
+		};
+		06A3B2CAA8C948CE3AC08C72 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				378301FFC5D583D39A55B12B /* libHangarSupport.a in Frameworks */,
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0BC73526F40306377CFC786F = {
+			isa = PBXGroup;
+			children = (
+				DBDE7F578973621581515187 /* Resources */,
+				E87E522CCC499202C1CB80A0 /* Sources/HangarCLI */,
+				8BFF153061BE28579A66C601 /* Sources/HangarApp */,
+				51FF1E9CE56AC6FADD1B35E3 /* Sources/HangarKit */,
+				21021434DC975F064CF09447 /* Sources/HangarShare */,
+				34B9179746BC5030A21D5A1B /* Sources/HangarDisks */,
+				33E3E7EE4A843FBAB40D58D7 /* Sources/HangarSecrets */,
+				D0479A58B05353986E65CEA4 /* Sources/HangarTraffic */,
+				CFF42E42F46D01631EEF36D7 /* Sources/HangarPackets */,
+				D8901FE9B1CD17005FB57165 /* Sources/HangarSupport */,
+				7C15A01002EDFA266FAC3D87 /* Tests/HangarKitTests */,
+				D333FC7C393C48079AAFE59F /* LICENSE.md */,
+				2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */,
+				3B6D4E977F74F9D651E03C8E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3B6D4E977F74F9D651E03C8E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A5DC3005888DBC9B44B5697E /* Hangar.app */,
+				5483DD08DAB580007E4241AF /* HangarShare.appex */,
+				288AD5D350B37DACDC215FE8 /* HangarCLI.app */,
+				56D295A0F8169A975822F96D /* HangarKitTests.xctest */,
+				DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */,
+				EA1A4A6E6C443B3D451AE876 /* libHangarDisks.a */,
+				01D4B81DB60D9A8CF0B50E0F /* libHangarTraffic.a */,
+				2B8B42F96C9E730CE6FF96AA /* libHangarSecrets.a */,
+				5336BEB203F2A1EF45E5653D /* libHangarPackets.a */,
+				3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DBDE7F578973621581515187 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				07C1AC0FB60667C9DA313561 /* AppIcon.icon */,
+				C93F0857642CFF15852E7E54 /* Assets.xcassets */,
+				F9377AEF16E6D08A5CBA2DF0 /* Guest */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B2D0EAE99ADA722C85FCAFB6 /* HangarSecrets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD6D3DB5965B4AF540C93056 /* Build configuration list for PBXNativeTarget "HangarSecrets" */;
+			buildPhases = (
+				7E063DFEE0465CD91D24C740 /* Sources */,
+				9C37B43B66B0403EF4262292 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA9C2FC8934BCADE4428EC63 /* PBXTargetDependency */,
+				4EB65E1D40DC28675E882A00 /* PBXTargetDependency */,
+				9A7592D1C7FA49DEDD7180F2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				33E3E7EE4A843FBAB40D58D7 /* Sources/HangarSecrets */,
+			);
+			name = HangarSecrets;
+			packageProductDependencies = (
+				0B52A3115C23D69DF3A5333F /* NIOCore */,
+				A5302FDFBF767B86FF9376E4 /* NIOPosix */,
+				86FA7A6D71B33437E0F0F6A5 /* NIOHTTP1 */,
+				677B97B15C1103968BA60633 /* NIOTLS */,
+				70255F56E7D8ADC8880186CC /* NIOSSL */,
+				B2C3D4E5F60718293A4B5C6D /* NIOHTTP2 */,
+				D1A9FC1D0178E5E376AEAF5F /* X509 */,
+				F4C796687A99957FB1BEE9C3 /* SwiftASN1 */,
+				457A85D982F85B0137B55F0C /* Crypto */,
+			);
+			productName = HangarSecrets;
+			productReference = 2B8B42F96C9E730CE6FF96AA /* libHangarSecrets.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		01273601DF03B1E72CFAAC80 /* HangarKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 297B92513A2B9205888B95A7 /* Build configuration list for PBXNativeTarget "HangarKit" */;
+			buildPhases = (
+				DA3B3F3CADF6110FDA825593 /* Sources */,
+				F877C108437E63095C18EF48 /* Resources */,
+				1238641F2B87CC002FDA6587 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9A1186D1368FC6E09006B81 /* PBXTargetDependency */,
+				71561C79DDD75E3A60917D3C /* PBXTargetDependency */,
+				485221338D04133642AE6381 /* PBXTargetDependency */,
+				6A605916C09B11DF6A2E95F0 /* PBXTargetDependency */,
+				2789F5A3447EB1342898D213 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				51FF1E9CE56AC6FADD1B35E3 /* Sources/HangarKit */,
+			);
+			name = HangarKit;
+			productName = HangarKit;
+			productReference = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		5CEC5708F52D374B5186DE08 /* HangarCLI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C56B5873EC2FD4967BD2EC0B /* Build configuration list for PBXNativeTarget "HangarCLI" */;
+			buildPhases = (
+				FC17905C6304E13CCAC5403E /* Sources */,
+				5BA85E844762E6A8E5F0BAF6 /* Resources */,
+				00F5283C4EB4C7639383A4BF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C840525C6B15E850EAE34AB5 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E87E522CCC499202C1CB80A0 /* Sources/HangarCLI */,
+			);
+			name = HangarCLI;
+			packageProductDependencies = (
+				A35590F9DD828628D52A2312 /* ArgumentParser */,
+			);
+			productName = HangarCLI;
+			productReference = 288AD5D350B37DACDC215FE8 /* HangarCLI.app */;
+			productType = "com.apple.product-type.application";
+		};
+		725B2FD093DF6AA7E01F425F /* Hangar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0424338E434024227B612FE9 /* Build configuration list for PBXNativeTarget "Hangar" */;
+			buildPhases = (
+				1C977E99E350038BD755BEFB /* Sources */,
+				863BCBE46190FB6B80A62558 /* Resources */,
+				709F034B96517FDC738AE032 /* Frameworks */,
+				9A6FD77B2C182526875C7B6A /* Embed Dependencies */,
+				F50A4F88A16133E220EB4D45 /* Embed Frameworks */,
+				65C7D622FCC8ABB8153477E7 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1FC6B3B8D1AF45CA54E8C07B /* PBXTargetDependency */,
+				7FF12741305ECB7A853E7A1F /* PBXTargetDependency */,
+				D807E8D6BA66A84B49164AC8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				8BFF153061BE28579A66C601 /* Sources/HangarApp */,
+			);
+			name = Hangar;
+			productName = Hangar;
+			productReference = A5DC3005888DBC9B44B5697E /* Hangar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FB73AF28140DBDA1719C6D7F /* HangarKitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ED599CFABC4F53A376BF44C4 /* Build configuration list for PBXNativeTarget "HangarKitTests" */;
+			buildPhases = (
+				F1B3FDDE8539B993CDEC92FD /* Sources */,
+				03C8EB79912E99EB6DA358EE /* Resources */,
+				D4675C21BEE70A2D87BD94F8 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				236AB95D01FEF7BA071DF045 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7C15A01002EDFA266FAC3D87 /* Tests/HangarKitTests */,
+			);
+			name = HangarKitTests;
+			productName = HangarKitTests;
+			productReference = 56D295A0F8169A975822F96D /* HangarKitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9867B88A7CC8629105F0A486 /* HangarSupport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 30134B93BC0B658E1132A906 /* Build configuration list for PBXNativeTarget "HangarSupport" */;
+			buildPhases = (
+				2E071884A03E4E81F277FC07 /* Sources */,
+			);
+			buildRules = (
+			);
+			fileSystemSynchronizedGroups = (
+				D8901FE9B1CD17005FB57165 /* Sources/HangarSupport */,
+			);
+			name = HangarSupport;
+			productName = HangarSupport;
+			productReference = 3E34C6716AC5C4FDD44B334A /* libHangarSupport.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		7A6511AC5AE55611370C63C5 /* HangarPackets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F8783917328C7BAFDB481C6F /* Build configuration list for PBXNativeTarget "HangarPackets" */;
+			buildPhases = (
+				DB4FD81D07BE3D5D3F34B99F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5763740A9F570007464968F4 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CFF42E42F46D01631EEF36D7 /* Sources/HangarPackets */,
+			);
+			name = HangarPackets;
+			productName = HangarPackets;
+			productReference = 5336BEB203F2A1EF45E5653D /* libHangarPackets.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		251D7E1B9FC793DE39721955 /* HangarTraffic */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B42D567139BFB7A492E1E11F /* Build configuration list for PBXNativeTarget "HangarTraffic" */;
+			buildPhases = (
+				C9026D4BC293C7124642A6EA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				21926BDD0BDEEC62829B83C6 /* PBXTargetDependency */,
+				6F5135042698D17C2535C7CE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D0479A58B05353986E65CEA4 /* Sources/HangarTraffic */,
+			);
+			name = HangarTraffic;
+			productName = HangarTraffic;
+			productReference = 01D4B81DB60D9A8CF0B50E0F /* libHangarTraffic.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CBA1990F78D30935B8FAD328 /* HangarDisks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 98EFA55B0DE91375FCD2CF88 /* Build configuration list for PBXNativeTarget "HangarDisks" */;
+			buildPhases = (
+				4029F3E85E3D318C4454BD21 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6865A01DF8543D0E3872BF06 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				34B9179746BC5030A21D5A1B /* Sources/HangarDisks */,
+			);
+			name = HangarDisks;
+			productName = HangarDisks;
+			productReference = EA1A4A6E6C443B3D451AE876 /* libHangarDisks.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		3507607E8A5FEDFA80212705 /* HangarShare */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C5F9170B8CE23E9000D9D12F /* Build configuration list for PBXNativeTarget "HangarShare" */;
+			buildPhases = (
+				C5591618B30A28093469E848 /* Sources */,
+				A4E14338ADA0F6F3822568C9 /* Resources */,
+				06A3B2CAA8C948CE3AC08C72 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CCFC525C7184980CD81A7F91 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				21021434DC975F064CF09447 /* Sources/HangarShare */,
+			);
+			name = HangarShare;
+			productName = HangarShare;
+			productReference = 5483DD08DAB580007E4241AF /* HangarShare.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		070A985CABCFA335961E390C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					CBA1990F78D30935B8FAD328 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					251D7E1B9FC793DE39721955 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					7A6511AC5AE55611370C63C5 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					9867B88A7CC8629105F0A486 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					01273601DF03B1E72CFAAC80 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					5CEC5708F52D374B5186DE08 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					725B2FD093DF6AA7E01F425F = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					FB73AF28140DBDA1719C6D7F = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+					3507607E8A5FEDFA80212705 = {
+						DevelopmentTeam = D8Y7HXTBTG;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 6D0CAAFE9DD01E736606C398 /* Build configuration list for PBXProject "Hangar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0BC73526F40306377CFC786F;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A41A4FE6E1D8CEF724708842 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+				76602238E04AC73EAAFB68C0 /* XCRemoteSwiftPackageReference "swift-asn1" */,
+				492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */,
+				7AE3E467CF21D12886C56705 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */,
+				A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "swift-nio-http2" */,
+				179EB46E24CCC7AC0C3997BB /* XCRemoteSwiftPackageReference "swift-certificates" */,
+				6E78409D34F2A54249F8807E /* XCRemoteSwiftPackageReference "swift-crypto" */,
+			);
+			preferredProjectObjectVersion = 110;
+			productRefGroup = 3B6D4E977F74F9D651E03C8E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				01273601DF03B1E72CFAAC80 /* HangarKit */,
+				CBA1990F78D30935B8FAD328 /* HangarDisks */,
+				251D7E1B9FC793DE39721955 /* HangarTraffic */,
+				B2D0EAE99ADA722C85FCAFB6 /* HangarSecrets */,
+				7A6511AC5AE55611370C63C5 /* HangarPackets */,
+				9867B88A7CC8629105F0A486 /* HangarSupport */,
+				5CEC5708F52D374B5186DE08 /* HangarCLI */,
+				725B2FD093DF6AA7E01F425F /* Hangar */,
+				FB73AF28140DBDA1719C6D7F /* HangarKitTests */,
+				3507607E8A5FEDFA80212705 /* HangarShare */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		03C8EB79912E99EB6DA358EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				D113E2194A22CEFDB76D2E20 /* Guest in Resources */,
+			);
+		};
+		5BA85E844762E6A8E5F0BAF6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		863BCBE46190FB6B80A62558 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				358A6BAA9EFFF4970C12D2BD /* Assets.xcassets in Resources */,
+				2295D7CEC0A7A212B1233BDF /* AppIcon.icon in Resources */,
+				40888E76A2AEBE482FEED42D /* Guest in Resources */,
+				96D3349694E94C77ACB9E494 /* LICENSE.md in Resources */,
+				AB72131F64A5458296B6B9E5 /* THIRD-PARTY-LICENSES.md in Resources */,
+			);
+		};
+		F877C108437E63095C18EF48 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		A4E14338ADA0F6F3822568C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7E063DFEE0465CD91D24C740 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		1C977E99E350038BD755BEFB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		DA3B3F3CADF6110FDA825593 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		F1B3FDDE8539B993CDEC92FD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		FC17905C6304E13CCAC5403E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		2E071884A03E4E81F277FC07 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		DB4FD81D07BE3D5D3F34B99F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		C9026D4BC293C7124642A6EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		4029F3E85E3D318C4454BD21 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		C5591618B30A28093469E848 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA9C2FC8934BCADE4428EC63 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = DA640E7CBCDC271FF7B279E5 /* PBXContainerItemProxy */;
+		};
+		4EB65E1D40DC28675E882A00 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A6511AC5AE55611370C63C5 /* HangarPackets */;
+			targetProxy = 9FC1E0EE7817B8E58FEACFA1 /* PBXContainerItemProxy */;
+		};
+		9A7592D1C7FA49DEDD7180F2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 251D7E1B9FC793DE39721955 /* HangarTraffic */;
+			targetProxy = 4727304EA7961643E194EA7E /* PBXContainerItemProxy */;
+		};
+		2789F5A3447EB1342898D213 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B2D0EAE99ADA722C85FCAFB6 /* HangarSecrets */;
+			targetProxy = 02A4778D536A126B1E1D3023 /* PBXContainerItemProxy */;
+		};
+		1FC6B3B8D1AF45CA54E8C07B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01273601DF03B1E72CFAAC80 /* HangarKit */;
+			targetProxy = B107B958FB6416C9D9CDDCE7 /* PBXContainerItemProxy */;
+		};
+		236AB95D01FEF7BA071DF045 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01273601DF03B1E72CFAAC80 /* HangarKit */;
+			targetProxy = C4F9948B16E8B7047560300F /* PBXContainerItemProxy */;
+		};
+		7FF12741305ECB7A853E7A1F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5CEC5708F52D374B5186DE08 /* HangarCLI */;
+			targetProxy = 3F3547F024B51A08E40D32AE /* PBXContainerItemProxy */;
+		};
+		C840525C6B15E850EAE34AB5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 01273601DF03B1E72CFAAC80 /* HangarKit */;
+			targetProxy = 89D6E3703DF478A8B0DED997 /* PBXContainerItemProxy */;
+		};
+		6A605916C09B11DF6A2E95F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = 0766394AFDA0C8DEF8F00C73 /* PBXContainerItemProxy */;
+		};
+		5763740A9F570007464968F4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = F9CE8F5B0020FE5E17EABA73 /* PBXContainerItemProxy */;
+		};
+		485221338D04133642AE6381 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A6511AC5AE55611370C63C5 /* HangarPackets */;
+			targetProxy = 159EC19779D02229C3AED613 /* PBXContainerItemProxy */;
+		};
+		21926BDD0BDEEC62829B83C6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7A6511AC5AE55611370C63C5 /* HangarPackets */;
+			targetProxy = 36FB61E801F272F4CB105097 /* PBXContainerItemProxy */;
+		};
+		6F5135042698D17C2535C7CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = 8B705ABD84CFA7F3CD87DFCF /* PBXContainerItemProxy */;
+		};
+		71561C79DDD75E3A60917D3C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 251D7E1B9FC793DE39721955 /* HangarTraffic */;
+			targetProxy = F84EFC1AD099D133840037E9 /* PBXContainerItemProxy */;
+		};
+		6865A01DF8543D0E3872BF06 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = 5806B4B44F5E349BB82F70B9 /* PBXContainerItemProxy */;
+		};
+		A9A1186D1368FC6E09006B81 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CBA1990F78D30935B8FAD328 /* HangarDisks */;
+			targetProxy = 5ABEFB9ED5E9441E366BD11B /* PBXContainerItemProxy */;
+		};
+		D807E8D6BA66A84B49164AC8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3507607E8A5FEDFA80212705 /* HangarShare */;
+			targetProxy = DAF5E7012CDDB43727A2C268 /* PBXContainerItemProxy */;
+		};
+		CCFC525C7184980CD81A7F91 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9867B88A7CC8629105F0A486 /* HangarSupport */;
+			targetProxy = 30100063FDD1B94386C46CA5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		22E1F59B3D4505FB3B026F5E /* Debug configuration for PBXNativeTarget "HangarSecrets" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		BD73C36AFBF965D84C6EDB97 /* Release configuration for PBXNativeTarget "HangarSecrets" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		52DF06884050B5CF6F72B8EA /* Debug configuration for PBXNativeTarget "HangarCLI" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+					"@executable_path/../../..",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.cli;
+				EXECUTABLE_NAME = hangar;
+				PRODUCT_NAME = HangarCLI;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		802DC8D3DDA0D2200DA58D00 /* Release configuration for PBXNativeTarget "HangarKit" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarSupport.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarPackets.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarTraffic.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarDisks.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarSecrets.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.kit;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		885E7337D8BDBF6E6DDFAAA1 /* Debug configuration for PBXProject "Hangar" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = Resources/Hangar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 0.0.0;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = D8Y7HXTBTG;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 0.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_PACKAGE_NAME = Hangar;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		8B8ED9C4FB02929CEA723C93 /* Debug configuration for PBXNativeTarget "HangarKit" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "@rpath";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarSupport.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarPackets.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarTraffic.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarDisks.a",
+					"-Wl,-force_load,$(BUILT_PRODUCTS_DIR)/libHangarSecrets.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.kit;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		8E6248F7860DFEA89A773B53 /* Release configuration for PBXNativeTarget "HangarCLI" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../../../Frameworks",
+					"@executable_path/../../..",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.cli;
+				EXECUTABLE_NAME = hangar;
+				PRODUCT_NAME = HangarCLI;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		8EEA664BF95AE4D26A108FBC /* Debug configuration for PBXNativeTarget "HangarKitTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.tests;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		94D9BD3D281BF4B72762958E /* Debug configuration for PBXNativeTarget "Hangar" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Resources/HangarApp.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/HangarApp-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hangar;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar;
+				PRODUCT_NAME = Hangar;
+				SDKROOT = macosx;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			};
+			name = Debug;
+		};
+		AD19E88F5CA89C347AF88971 /* Release configuration for PBXNativeTarget "Hangar" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Resources/HangarApp.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/HangarApp-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hangar;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar;
+				PRODUCT_NAME = Hangar;
+				SDKROOT = macosx;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			};
+			name = Release;
+		};
+		B28C0B8DD9036E7909175993 /* Release configuration for PBXNativeTarget "HangarKitTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.tests;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E45A9A2C981572B5AE4C85EC /* Release configuration for PBXProject "Hangar" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = Resources/Hangar.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 0.0.0;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = D8Y7HXTBTG;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 0.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_PACKAGE_NAME = Hangar;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		A933368FFFB15908919D6C92 /* Debug configuration for PBXNativeTarget "HangarSupport" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		ED3081BA299E2A4CF1832580 /* Release configuration for PBXNativeTarget "HangarSupport" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		4B419AAD117BEA46EFCA93CB /* Debug configuration for PBXNativeTarget "HangarPackets" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		1EAB3D9EA9B72E384E884495 /* Release configuration for PBXNativeTarget "HangarPackets" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		ACBACBEF34FFB13F906525A1 /* Debug configuration for PBXNativeTarget "HangarTraffic" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		4937BD3A99F6FF20A844B5AA /* Release configuration for PBXNativeTarget "HangarTraffic" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		32AFA9FA37F79F92EAD91FD1 /* Debug configuration for PBXNativeTarget "HangarDisks" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		A109A56D48545A9F43A886FF /* Release configuration for PBXNativeTarget "HangarDisks" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		2554AEE791F13343938CD4A4 /* Debug configuration for PBXNativeTarget "HangarShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/HangarShare.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/HangarShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hangar;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.share;
+				PRODUCT_NAME = HangarShare;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			};
+			name = Debug;
+		};
+		75CAA04F565712A2D3990688 /* Release configuration for PBXNativeTarget "HangarShare" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Resources/HangarShare.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/HangarShare-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Hangar;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.baseguard.hangar.share;
+				PRODUCT_NAME = HangarShare;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FD6D3DB5965B4AF540C93056 /* Build configuration list for PBXNativeTarget "HangarSecrets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22E1F59B3D4505FB3B026F5E /* Debug configuration for PBXNativeTarget "HangarSecrets" */,
+				BD73C36AFBF965D84C6EDB97 /* Release configuration for PBXNativeTarget "HangarSecrets" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		0424338E434024227B612FE9 /* Build configuration list for PBXNativeTarget "Hangar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				94D9BD3D281BF4B72762958E /* Debug configuration for PBXNativeTarget "Hangar" */,
+				AD19E88F5CA89C347AF88971 /* Release configuration for PBXNativeTarget "Hangar" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		297B92513A2B9205888B95A7 /* Build configuration list for PBXNativeTarget "HangarKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B8ED9C4FB02929CEA723C93 /* Debug configuration for PBXNativeTarget "HangarKit" */,
+				802DC8D3DDA0D2200DA58D00 /* Release configuration for PBXNativeTarget "HangarKit" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		6D0CAAFE9DD01E736606C398 /* Build configuration list for PBXProject "Hangar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				885E7337D8BDBF6E6DDFAAA1 /* Debug configuration for PBXProject "Hangar" */,
+				E45A9A2C981572B5AE4C85EC /* Release configuration for PBXProject "Hangar" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		C56B5873EC2FD4967BD2EC0B /* Build configuration list for PBXNativeTarget "HangarCLI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52DF06884050B5CF6F72B8EA /* Debug configuration for PBXNativeTarget "HangarCLI" */,
+				8E6248F7860DFEA89A773B53 /* Release configuration for PBXNativeTarget "HangarCLI" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		ED599CFABC4F53A376BF44C4 /* Build configuration list for PBXNativeTarget "HangarKitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8EEA664BF95AE4D26A108FBC /* Debug configuration for PBXNativeTarget "HangarKitTests" */,
+				B28C0B8DD9036E7909175993 /* Release configuration for PBXNativeTarget "HangarKitTests" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		30134B93BC0B658E1132A906 /* Build configuration list for PBXNativeTarget "HangarSupport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A933368FFFB15908919D6C92 /* Debug configuration for PBXNativeTarget "HangarSupport" */,
+				ED3081BA299E2A4CF1832580 /* Release configuration for PBXNativeTarget "HangarSupport" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		F8783917328C7BAFDB481C6F /* Build configuration list for PBXNativeTarget "HangarPackets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4B419AAD117BEA46EFCA93CB /* Debug configuration for PBXNativeTarget "HangarPackets" */,
+				1EAB3D9EA9B72E384E884495 /* Release configuration for PBXNativeTarget "HangarPackets" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		B42D567139BFB7A492E1E11F /* Build configuration list for PBXNativeTarget "HangarTraffic" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACBACBEF34FFB13F906525A1 /* Debug configuration for PBXNativeTarget "HangarTraffic" */,
+				4937BD3A99F6FF20A844B5AA /* Release configuration for PBXNativeTarget "HangarTraffic" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		98EFA55B0DE91375FCD2CF88 /* Build configuration list for PBXNativeTarget "HangarDisks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				32AFA9FA37F79F92EAD91FD1 /* Debug configuration for PBXNativeTarget "HangarDisks" */,
+				A109A56D48545A9F43A886FF /* Release configuration for PBXNativeTarget "HangarDisks" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		C5F9170B8CE23E9000D9D12F /* Build configuration list for PBXNativeTarget "HangarShare" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2554AEE791F13343938CD4A4 /* Debug configuration for PBXNativeTarget "HangarShare" */,
+				75CAA04F565712A2D3990688 /* Release configuration for PBXNativeTarget "HangarShare" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		76602238E04AC73EAAFB68C0 /* XCRemoteSwiftPackageReference "swift-asn1" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-asn1";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.7.3;
+			};
+		};
+		492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.104.0;
+			};
+		};
+		7AE3E467CF21D12886C56705 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio-ssl";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.37.5;
+			};
+		};
+		179EB46E24CCC7AC0C3997BB /* XCRemoteSwiftPackageReference "swift-certificates" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-certificates";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.21.1;
+			};
+		};
+		6E78409D34F2A54249F8807E /* XCRemoteSwiftPackageReference "swift-crypto" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-crypto";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.3;
+			};
+		};
+		A41A4FE6E1D8CEF724708842 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
+		A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "swift-nio-http2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio-http2";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.46.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B2C3D4E5F60718293A4B5C6D /* NIOHTTP2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D4E5F60718293A4B5C /* XCRemoteSwiftPackageReference "swift-nio-http2" */;
+			productName = NIOHTTP2;
+		};
+		677B97B15C1103968BA60633 /* NIOTLS */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOTLS;
+		};
+		F4C796687A99957FB1BEE9C3 /* SwiftASN1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 76602238E04AC73EAAFB68C0 /* XCRemoteSwiftPackageReference "swift-asn1" */;
+			productName = SwiftASN1;
+		};
+		0B52A3115C23D69DF3A5333F /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		A5302FDFBF767B86FF9376E4 /* NIOPosix */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOPosix;
+		};
+		86FA7A6D71B33437E0F0F6A5 /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 492355620BAFE730215BF782 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
+		70255F56E7D8ADC8880186CC /* NIOSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7AE3E467CF21D12886C56705 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */;
+			productName = NIOSSL;
+		};
+		D1A9FC1D0178E5E376AEAF5F /* X509 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 179EB46E24CCC7AC0C3997BB /* XCRemoteSwiftPackageReference "swift-certificates" */;
+			productName = X509;
+		};
+		457A85D982F85B0137B55F0C /* Crypto */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6E78409D34F2A54249F8807E /* XCRemoteSwiftPackageReference "swift-crypto" */;
+			productName = Crypto;
+		};
+		A35590F9DD828628D52A2312 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A41A4FE6E1D8CEF724708842 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 070A985CABCFA335961E390C /* Project object */;
+}
