@@ -1,0 +1,157 @@
+---
+title: Running AI agents
+description: Give a coding agent a whole VM, only the hosts it needs, and a snapshot to roll back to.
+section: Start
+order: 2
+---
+
+# Running AI agents
+
+Coding agents like Claude Code and Codex do their best work when they don't stop to ask before every command. On your
+own Mac, that means trusting them with your files, your keys and your network. In a Hangar VM an agent gets a whole
+machine to itself, you decide which hosts it can reach, and a snapshot puts everything back.
+
+The examples call the VM `kestrel`; any name works.
+
+## 1. Create a VM
+
+Hangar's macOS `base` image comes with the Command Line Tools, Homebrew and Hangar's agent, and the administrator
+`admin` with the password `admin`:
+
+```sh
+hangar create kestrel --os macos --image base
+```
+
+Linux works just as well, for example from Debian's cloud image (see [Creating VMs](creating-vms.mdx)).
+
+## 2. Install what the agent needs
+
+Start the VM, sign in and install the agent the way its docs describe, along with anything your project needs:
+
+```sh
+hangar run kestrel --background
+ssh admin@$(hangar ip kestrel --wait 60)
+```
+
+> Do this before you switch the allow list on, or add those download hosts to it too.
+
+## 3. Let it reach only what it needs
+
+```sh
+hangar policy kestrel --mode allowlist --allow anthropic.com --allow claude.ai --allow github.com
+```
+
+Rules apply to a running VM at once. Everything else is blocked, and shows up as blocked in the VM's traffic. In the
+app, the VM's **Traffic** tab edits the same lists, and **Rules File** imports a ready-made set from a file or an
+`https://` address.
+
+Without an allow list, in the default **Monitor** mode, nothing is blocked: the VM reaches the internet, your local
+network, other VMs and every service on this Mac that listens on all its addresses.
+
+Don't allow a wildcard whose names anyone can point anywhere, like `*.nip.io`, `*.sslip.io` or a dynamic-DNS service:
+it opens the whole internet. This Mac, other VMs and private networks stay blocked even then.
+
+To give the agent API tokens, use [secrets](secrets.mdx) rather than putting them in the VM. The allow list decides
+where the VM can go, a secret's hosts decide which of them get its value, and the token's own scope decides what it
+can do there.
+
+## 4. Share its project, and nothing else
+
+```sh
+hangar share add kestrel ~/Code/my-project
+```
+
+It appears in the VM under `/Volumes/My Shared Files` on macOS, or `/mnt/hangar` on Linux. A shared folder is
+read-write unless you add `--read-only`, so the agent's changes land in the folder on your Mac. To keep your copy
+untouched, clone the repository inside the VM instead.
+
+A read-write shared repository is also a way onto your Mac. Git hooks in `.git/hooks`, an `.envrc` or an editor's task
+files that the agent writes run on the Mac the next time you open the project, and files the VM wrote carry no
+quarantine flag. Share it with `--read-only`, or clone it inside the VM.
+
+Leave **Use Shared Clipboard** off, the default, for a VM you don't trust.
+
+## 5. Take a snapshot
+
+```sh
+hangar stop kestrel
+hangar snapshot take kestrel clean
+```
+
+## 6. Let it work, and watch it
+
+```sh
+hangar run kestrel --background
+ssh admin@$(hangar ip kestrel --wait 60)
+```
+
+Inside, start the agent with approvals off. It works on its own, and with the checklist below, the worst it can break
+is this VM. From the Mac, watch where it goes:
+
+```sh
+hangar traffic kestrel --follow
+```
+
+If it reaches for something it shouldn't, cut it off at once:
+
+```sh
+hangar policy kestrel --isolate on
+```
+
+**Isolate** cuts the VM off from everything but this Mac. The shared clipboard and shared folders still work.
+
+## 7. Roll it back
+
+```sh
+hangar stop kestrel
+hangar snapshot restore kestrel clean
+```
+
+Everything since the snapshot is lost, unless you take another snapshot first.
+
+## Checklist for an agent you don't trust
+
+- The network is Hangar Managed (`hangar set kestrel --network managed`), the default.
+- `hangar policy kestrel --mode allowlist` with only the hosts it needs. In that mode this Mac, other VMs, the local
+  network and QUIC are already off.
+- `hangar policy kestrel --udp off`, so only DNS through this Mac gets out over UDP.
+- The shared clipboard is off, the default.
+- Shared folders are read-only, or there are none. A read-write share lets the VM fill your Mac's disk.
+- API tokens are [secrets](secrets.mdx), not files or variables in the VM.
+- A snapshot to roll back to.
+- `hangar policy kestrel --isolate on` cuts it off at once if it misbehaves.
+
+## Many agents at once
+
+Clone the clean snapshot into as many VMs as your Mac can hold:
+
+```sh
+hangar clone kestrel kestrel-2 --snapshot clean
+hangar clone kestrel kestrel-3 --snapshot clean
+```
+
+Each clone starts fresh, with its own MAC address, IP address and machine identity, and keeps the source's traffic
+rules. Check a clone's rules with `hangar policy kestrel-2`.
+
+## Let an agent on your Mac drive Hangar
+
+`hangar mcp` is an MCP server: an agent like Claude Code or Codex, running on your Mac, can then create VMs, run
+commands and copy files in them, take snapshots and set their traffic rules, so you can ask for "a Debian VM with Go
+that reaches only github.com" in plain words.
+
+```sh
+claude mcp add hangar -- hangar mcp
+codex mcp add hangar -- hangar mcp
+```
+
+Its tools run the same `hangar` commands you would, with the same checks: `list_vms`, `get_vm`, `create_vm`,
+`change_vm`, `clone_vm`, `save_template`, `start_vm`, `stop_vm`, `list_snapshots`, `take_snapshot`,
+`restore_snapshot`, `run_command`, `copy_files`, `get_ip`, `get_traffic` and `traffic_policy`. `run_command` runs a
+command line through Hangar's agent in the VM and stops it after 10 minutes unless the agent asks for longer.
+
+Some things stay with you: secret values and passwords never pass through it, and it can't delete VMs. It makes VMs
+from Hangar's images (which sign in as `admin`, password `admin`), registry images, image files and templates;
+make Windows VMs and VMs from installer ISOs yourself.
+
+The agent acts with your rights on this Mac: `copy_files` can read and write your files, and `traffic_policy` can open
+a VM's network. Leave your agent client's tool approvals on for them if that matters to you.

@@ -1,0 +1,39 @@
+---
+title: Building from source
+description: The tools Hangar's build needs, and its make targets.
+section: Project
+order: 2
+---
+
+# Building from source
+
+Building Hangar needs **Xcode 27**. The guest agents for macOS, Linux and Windows are written in Rust and live in
+[`guest-agent`](../guest-agent); `make` builds them too.
+
+## Tools
+
+- [rustup](https://rustup.rs): `make` uses the toolchain pinned in `guest-agent/rust-toolchain.toml`
+- [zig 0.17.0](https://ziglang.org/download/), on your `PATH`
+- cargo-zigbuild 0.24.0
+- cargo-audit 0.22.2
+
+```sh
+cargo install cargo-zigbuild --version 0.24.0 --locked
+cargo install cargo-audit --version 0.22.2 --locked
+```
+
+The Linux and Windows agents are byte-for-byte reproducible with these versions; another zig gives other checksums
+than the published ones.
+
+## Make targets
+
+| Command | |
+|---|---|
+| `make dev` | Debug build in `.build/xcode` |
+| `make test` | Build the agents and run the tests |
+| `make lint`, `make format` | Check the Swift code with the toolchain's swift-format, or format it |
+| `make build VERSION=1.2.3` | Build `dist/Hangar.app` |
+| `make dmg` | Package `dist/Hangar.app` as `dist/Hangar.dmg` |
+| `make agents` | Audit the agents' dependencies and build them into `Resources/Guest` |
+| `make bench` | Time the traffic inspector per frame; run it before and after packet-path changes |
+| `make efi` | Rebuild the EFI programs in `firmware/` that Windows VMs start with (needs `brew install lld`) |

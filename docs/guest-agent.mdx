@@ -1,0 +1,97 @@
+---
+title: Guest agent
+description: What Hangar's agent does inside a VM, and how to install or update it.
+section: Use
+order: 3
+---
+
+# Guest agent
+
+Hangar's agent runs inside the VM. It reports the guest's own memory use, shares the clipboard, handles drag and drop,
+runs [`hangar exec`](#running-commands)'s commands, and powers the guest off when you shut it down. In Linux it also
+mounts the shared folders at `/mnt/hangar`.
+
+Without the agent, Hangar shows the memory the VM takes on this Mac instead, and **Shut Down** presses the VM's power
+button, which macOS and GNOME answer with a dialog.
+
+## Who has it
+
+- Hangar's `base` and `xcode` macOS images come with it, together with the Command Line Tools and Homebrew.
+- Linux cloud images get it through cloud-init; new Windows VMs while Windows is installed.
+- For other VMs, install it yourself (below).
+
+## Install it
+
+Choose **Virtual Machine › Install Guest Agent…**, or run `hangar setup <vm>`, which shows the steps to follow in
+the guest with the command to run there. Hangar shares a read-only **Tools** folder with every VM:
+
+| Guest | How |
+|---|---|
+| macOS | Double-click **hangar-agent** in `/Volumes/My Shared Files/Tools`; it opens in Terminal. It asks for your password once: the agent's system part runs as root, and it installs the Command Line Tools and Homebrew if they're missing. |
+| Windows | Press Windows+R and run `Z:\Tools\hangar-agent.exe`. Windows can't start programs from File Explorer on the shared drive, and asks for permission for the Windows Command Processor, which runs the installer. |
+| Linux | Run the one-line `sudo` command Hangar shows, which mounts the shared folders and runs `/mnt/hangar/Tools/hangar-agent install`. |
+
+## Update it
+
+When Hangar brings a newer agent, the menu item reads **Virtual Machine › Update Guest Agent…**, and the Files
+window offers the same. Hangar copies the new agent into the guest's temporary folder through `hangar exec`, the agent
+puts itself in place and restarts, and Hangar waits until the new one answers. `hangar setup <vm>` does the same:
+
+```sh
+hangar setup deb
+hangar setup deb --password-stdin < password.txt
+```
+
+| Guest | What it asks |
+|---|---|
+| macOS | The password of the account at the screen, for the agent's system part. |
+| Linux | Nothing when `sudo` needs no password, as on cloud images; otherwise the password of the account at the screen. |
+| Windows | Click **Yes** when Windows asks for permission inside the VM. |
+
+The password goes only to the update's input in the guest; Hangar doesn't keep it. An agent too old to update itself,
+or one that doesn't answer, is updated with the install steps above. Hangar never signs in to these VMs for you.
+
+## Running commands
+
+`hangar exec` runs a command in a running VM through the agent: no SSH, no password and no network, so it also works
+in a VM that's isolated.
+
+```sh
+hangar exec mac uname -a
+hangar exec -it mac zsh
+hangar exec -i deb -- sh -c 'cat > notes.txt' < notes.txt
+```
+
+`-i` sends this terminal's input to the command and `-t` gives it a terminal, for shells and full-screen programs.
+Output streams as it comes, and `hangar exec` exits with the command's exit code, or 125 when it couldn't run it.
+
+| Guest | Who runs the command |
+|---|---|
+| macOS | The user at the screen, in their own login session; at the login window, the VM's account (`hangar set <vm> --ssh-user`) |
+| Linux | The user at the screen; with nobody signed in, as on a cloud image, the VM's account |
+| Windows | The user signed in at the screen; with nobody signed in, the command doesn't run |
+
+Commands never run as root or SYSTEM; put `sudo` in front of one that needs it. On Windows, `cmd`'s own commands need
+`cmd /c` (`hangar exec win cmd /c dir`), and with `-t` a `.bat` or `.cmd` file reads its arguments the way `cmd` does,
+so `&`, `|` and `^` in them act. On macOS the command goes through `sudo -u`, so a command that doesn't exist ends
+with sudo's message and exit code 1 rather than 125.
+
+Each command gets a connection of its own to the agent, over the VM's virtio socket rather than the network, and
+closing `hangar exec` ends the command. A command that stops reading the input you pipe to it is ended once it reads
+again or exits; until then, end it yourself (`hangar exec <vm> pkill <name>`, or `taskkill` on Windows).
+
+An agent too old for `hangar exec` says so; update it with `hangar setup <vm>`.
+
+## Shared clipboard
+
+Turn on **Virtual Machine › Use Shared Clipboard**, or `hangar set <vm> --clipboard on`, while the VM is stopped.
+Hangar's agent shares plain text in both directions, only with the user at the guest's screen (Linux: GTK 4
+desktops such as GNOME, Debian 12 and Ubuntu 22.04 or newer).
+
+> Leave it off, the default, for a VM you don't trust.
+
+A Linux guest that already runs spice-vdagent keeps using it.
+
+## The agent files
+
+The agents are written in Rust and live in this repository's [`guest-agent`](../guest-agent) folder.

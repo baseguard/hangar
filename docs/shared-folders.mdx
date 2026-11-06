@@ -1,0 +1,79 @@
+---
+title: Shared folders
+description: Share folders on your Mac with a VM, browse its files, and drop files onto its window.
+section: Use
+order: 1
+---
+
+# Shared folders
+
+Share a folder from the VM's Settings, **Virtual Machine › Shared Folders**, or the command line. Changes reach a
+running VM right away.
+
+```sh
+hangar share add <vm> <path> [--read-only]
+hangar run <vm> --dir [name:]path[:ro]
+```
+
+The first shares a folder for good; the second shares it for one run only. From Finder you can also send files to a
+VM with **Share › Hangar**.
+
+## Where the folder appears
+
+| Guest | Where the folder appears |
+|---|---|
+| macOS | `/Volumes/My Shared Files/<name>` |
+| Windows | `Z:\<name>` |
+| Linux | `/mnt/hangar/<name>`, mounted by Hangar's agent (without it: `sudo mount -t virtiofs hangar /mnt/hangar`) |
+
+**Tools** is Hangar's own name, so your shared folders can't use it.
+
+## Copying with hangar cp
+
+`hangar cp` copies a file or folder between this Mac and a running VM, in either direction. A path in the VM starts
+with the VM's name and a colon:
+
+```sh
+hangar cp report.pdf deb:/home/dev/          # into a folder in the VM
+hangar cp deb:/var/log/app.log .             # from the VM into this folder
+hangar cp deb:/home/dev/project - > p.tar    # a folder in the VM as a tar archive
+```
+
+A copy into an existing folder keeps its name; otherwise it takes the name you give. It runs as the user at the VM's
+screen, over Hangar's agent, so it needs no shared folder and no network.
+
+What comes from the VM is checked before it is written: only files and folders, no names that reach outside the
+destination, no links or special files, no owners or special permission bits. Files from the VM replace files on this
+Mac at that path, folders are only added to, and everything is quarantined like a download, so macOS checks an app
+or a script from the VM before it first runs. A copy that hits something it refuses stops there; what it wrote before
+stays. With `-` the tar archive goes to or from the terminal as it is, unchecked.
+
+## Browsing files in the app
+
+**Virtual Machine › Browse Files…** opens a Finder-like window on a running VM's files, starting in the home folder
+of the user at the VM's screen. The sidebar lists that home and its Desktop, Documents, Downloads and HangarDrop
+folders under **Favorites**, and the VM's disk under **Locations** (`/` on Linux and macOS, `C:` on Windows). The list
+shows each item's name, date modified, size and kind; click a column to sort by it, and folders stay on top. Search in
+the toolbar filters the folder shown by name.
+
+Double-click a folder to open it. Use **Back** and **Forward** (⌘[ and ⌘]), the path bar at the bottom, or the menu
+on the window's title to move between folders, and **Go to Folder…** (⇧⌘G) to type a path; one starting with `~`
+is in the home folder.
+
+To copy files to this Mac, drag them from the list to Finder or the Desktop, double-click a file to download it to
+Downloads and show it in Finder, or choose **Download…** to pick a folder. An item whose name is already there gets a
+number, like `report 2.pdf`. To copy files into the VM, drag them from Finder onto the list (into the folder shown),
+onto a folder in the list or onto a place in the sidebar, or choose **Upload…**; Hangar asks before it replaces
+anything with the same name. Copies run like `hangar cp`, with the same checks; links and special files are left out.
+Their progress shows at the bottom of the window, where you can cancel them; a cancelled download takes back what it
+wrote. Browsing needs a current agent; see [Guest agent](guest-agent.mdx#update-it).
+
+## Drag and drop
+
+Drop files or folders onto a running VM's window, or share them to Hangar from Finder, to copy them into the
+**HangarDrop** folder in the home of the user at the VM's screen (`~/HangarDrop`, or `%USERPROFILE%\HangarDrop` on
+Windows). A name that's already there gets a number, like `report 2.pdf`. Someone must be signed in, and the VM must
+be running.
+
+Hangar sends them to the agent over the same channel as `hangar cp`, without a shared folder. Symbolic links are
+skipped.

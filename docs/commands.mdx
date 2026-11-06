@@ -1,0 +1,60 @@
+---
+title: Commands
+description: The everyday hangar commands, and every command the CLI has.
+section: Start
+order: 4
+---
+
+# Commands
+
+The `hangar` command line works on the same VMs as the app. Every command has help: `hangar help <command>`.
+
+## Everyday commands
+
+| Do this | Run |
+|---|---|
+| See your VMs | `hangar list` |
+| Start / shut down | `hangar run <vm>` (or `--background`) / `hangar stop <vm>` |
+| Run a command inside | `hangar exec <vm> uname -a` |
+| Copy files in or out | `hangar cp report.pdf <vm>:/home/dev/`, `hangar cp <vm>:/var/log/app.log .` |
+| Open a shell | `hangar exec -it <vm> zsh`, or `ssh <user>@$(hangar ip <vm> --wait 60)` |
+| Read its log (background runs) | `hangar logs <vm> --follow` |
+| Watch its traffic | `hangar traffic <vm> --follow` |
+| Allow only some hosts | `hangar policy <vm> --mode allowlist --allow github.com` |
+| Isolate it from the network | `hangar policy <vm> --isolate on` |
+| Snapshot it | `hangar snapshot take <vm> <name>` |
+| Change its settings | `hangar set <vm> --memory 8 --cpu 4` |
+
+## All commands
+
+| Command | Description |
+|---|---|
+| `list` | List the VMs with their state, size and IP address |
+| `create <vm>` | Create a macOS, Linux or Windows VM, or one from a template (`--template <file>`; `--allow-write-shares` lets it share folders read-write) |
+| `template save <vm> <file>` | Save a VM's recipe to a `.hangarvm` file; see [Templates](templates.mdx) |
+| `info <vm>` | Show a VM's settings: processors, memory, disk, network, devices |
+| `clone <vm> <name>` | Copy a VM, or one of its snapshots with `--snapshot` |
+| `rename`, `delete` | Rename or delete stopped VMs |
+| `prune` | Delete downloads not used for a while (`--older-than <days>`, `--space-budget <gb>`) |
+| `ipsw` | Show the newest macOS that Apple offers for this Mac, with its download link |
+| `export <vm> <registry/repo:tag>` | Push a VM, or one of its snapshots, to a registry as an image, or save it to a `.tar` file |
+| `login <registry>`, `logout <registry>` | Sign in to a registry (the token goes to your Keychain), or forget it |
+| `run <vm>…` | Start a VM in a window, in this terminal (`--no-graphics`), or VMs in the background (`--background`) |
+| `stop [<vm>…]` | Shut down VMs (`--force`, `--all`, `--timeout <seconds>`) |
+| `pause`, `resume <vm>` | Pause a running VM, or let it carry on |
+| `autostart` | Start the VMs set to `--autostart on` |
+| `stats` | Processor, memory and disk use of running VMs |
+| `logs <vm>` | Show the log of a VM started in the background (`--follow`) |
+| `exec <vm> <command>` | Run a command in a running VM through Hangar's agent, without SSH (`-i` input, `-t` terminal); see [Guest agent](guest-agent.mdx#running-commands) |
+| `ip <vm>` | Print a running VM's IP address (`--wait <seconds>`) |
+| `cp <source> <destination>` | Copy files and folders between this Mac and a running VM; see [Shared folders](shared-folders.mdx#copying-with-hangar-cp) |
+| `mcp` | Let AI agents like Claude Code and Codex use Hangar, as an MCP server; see [Running AI agents](ai-agents.mdx#let-an-agent-on-your-mac-drive-hangar) |
+| `setup <vm>` | Update Hangar's agent in a running VM, or show how to install it; see [Guest agent](guest-agent.mdx#update-it) |
+| `set <vm>` | Change a VM's settings: `--cpu`, `--memory`, `--disk`, `--display`, `--network`, `--iso`/`--no-iso`, `--rosetta`, `--nested`, `--audio`, `--clipboard`, `--autostart`, `--ssh-user` (the account `hangar exec` uses), `--new-mac` |
+| `share add`, `share remove` | Manage shared folders |
+| `secret set`, `list`, `remove` | Give a VM tokens it uses without holding them (see [Secrets](secrets.mdx)) |
+| `snapshot take`, `list`, `restore`, `rename`, `delete` | Manage snapshots |
+| `traffic <vm>` | Show where a VM's network traffic goes (`--follow`, `--blocked`, `--summary`, `--json`) |
+| `policy <vm>` | Show or change a VM's traffic rules |
+| `network status`, `stop`, `set`, `logs` | Manage Hangar's network, the one Hangar Managed VMs use, and read its daemon's log |
+| `image build`, `prepare`, `verify` | Build Hangar's own macOS images (see [Building the macOS images](macos-images.mdx)) |

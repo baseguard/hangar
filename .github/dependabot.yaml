@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Keeps the SHA-pinned actions current; one pull request a week for all of them.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The guest agent's crates, the same way.
+  - package-ecosystem: cargo
+    directory: /guest-agent
+    schedule:
+      interval: weekly
+    groups:
+      crates:
+        patterns: ["*"]

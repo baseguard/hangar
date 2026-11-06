@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the guest agent tools
+        uses: ./.github/actions/agent-tools
+
+      - name: Check the guest agent
+        working-directory: guest-agent
+        run: |
+          cargo fmt --all --check
+          for target in aarch64-apple-darwin aarch64-unknown-linux-gnu aarch64-pc-windows-gnullvm; do
+            cargo clippy --locked --workspace --all-targets --target "$target" -- -D warnings
+          done
+          cargo test --locked --workspace
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test

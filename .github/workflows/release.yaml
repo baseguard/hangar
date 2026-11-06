@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TEAM_ID: D8Y7HXTBTG
+  SIGN_IDENTITY: "Developer ID Application: BASEGUARD BILISIM TEKNOLOJILERI ANONIM SIRKETI (D8Y7HXTBTG)"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    environment: release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read the version from the tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "The tag $TAG isn't a version like v1.2.3." >&2; exit 1; }
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Install the guest agent tools
+        uses: ./.github/actions/agent-tools
+
+      # Before the signing certificate is on the runner.
+      - name: Test
+        run: make test
+
+      - name: Import the signing certificate
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_APP_CERT_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+        run: packaging/release.sh import-certificate
+
+      - name: Build the app
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: make build VERSION="$VERSION"
+
+      - name: Sign the app and its command line with their provisioning profiles
+        env:
+          PROVISIONING_PROFILE: ${{ secrets.APPLE_PROVISION_PROFILE }}
+          CLI_PROVISIONING_PROFILE: ${{ secrets.APPLE_CLI_PROVISION_PROFILE }}
+        run: packaging/release.sh sign
+
+      - name: Make the disk image
+        run: make dmg
+
+      - name: Sign and notarize the disk image
+        env:
+          API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: packaging/release.sh notarize
+
+      - name: Upload the disk image to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" dist/Hangar.dmg --clobber
+
+      - name: Remove the signing keys
+        if: always()
+        run: packaging/release.sh remove-keys

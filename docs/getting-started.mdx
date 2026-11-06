@@ -1,0 +1,102 @@
+---
+title: Getting started
+description: Install Hangar and create a macOS, Linux or Windows VM in about a minute, from the app or the terminal.
+section: Start
+order: 1
+---
+
+# Getting started
+
+Hangar runs macOS, Linux and Windows virtual machines on your Mac, and lets you see and control where their network
+traffic goes. It's an app and a command line, working on the same VMs.
+
+> Hangar needs **macOS 27 or later** on a Mac with **Apple silicon**.
+
+## Install
+
+1. Download `Hangar.dmg` from [Releases](https://github.com/baseguard/hangar/releases) and drag Hangar into
+   Applications.
+2. For the command line, choose **Settings › Command Line › Install…** in Hangar.
+
+To link the command line by hand instead:
+
+```sh
+sudo ln -sf /Applications/Hangar.app/Contents/Helpers/HangarCLI.app/Contents/MacOS/hangar /usr/local/bin/hangar
+```
+
+## In the app
+
+1. On the welcome screen, or after <kbd>⌘N</kbd>, click **macOS** or **Linux**. The **Quick Start** tab opens with
+   **Base** (the Command Line Tools, Homebrew and Hangar's agent) or **Debian 13** picked; choose another if you like.
+2. Click **Create and Start**. The VM opens when it's ready.
+3. For your own account, an ISO, the latest IPSW from Apple or other sizes, use the **Advanced** tab.
+
+Every Quick Start VM has the administrator `admin` with the password `admin`, and SSH is on. Change the password
+in the VM.
+
+While a VM's window has the keyboard, shortcuts such as <kbd>⌘Tab</kbd>, <kbd>⌘Space</kbd> and <kbd>⌘Q</kbd> go to
+the VM, and the pointer stays on its screen. Press <kbd>⌃⌥⌘</kbd> together to give both back to your Mac; click
+the VM's screen to take them again. A shortcut made of exactly those three keys and one more, like macOS's
+<kbd>⌃⌥⌘8</kbd>, can't reach the VM.
+
+Keeping the pointer on the VM's screen takes the Accessibility permission: macOS asks the first time, or turn on
+Hangar in **System Settings › Privacy & Security › Accessibility**. Without it, only the keyboard goes to the VM. The
+pointer always moves at your Mac's own speed.
+
+## In the terminal
+
+### macOS
+
+Hangar's `base` image comes with the Command Line Tools, Homebrew and Hangar's agent, and the administrator `admin`
+with the password `admin`.
+
+```sh
+hangar create mac --os macos --image base
+hangar run mac --background
+ssh admin@$(hangar ip mac --wait 60)
+```
+
+For your own account instead, leave out `--image` and add `--user`: `hangar create mac --os macos --user dev`.
+
+### Linux
+
+Hangar's `debian` image is Debian's own cloud image, with the administrator `admin` (password `admin`) and Hangar's
+agent set up on its first start; `ubuntu` is the same with Ubuntu.
+
+```sh
+hangar create deb --os linux --image debian
+hangar run deb --background
+ssh admin@$(hangar ip deb --wait 60)
+```
+
+For your own account, a cloud image of your choice or an installer ISO, see [Creating VMs](creating-vms.mdx).
+
+### Windows
+
+Download the official Windows 11 Arm64 ISO from
+[Microsoft](https://www.microsoft.com/software-download/windows11arm64), then:
+
+```sh
+hangar create win --os windows --iso ~/Downloads/Win11_arm64.iso --user admin
+hangar run win
+```
+
+Windows installs unattended and creates `admin` on its first start. Remote Desktop is on; `--no-remote-desktop` keeps
+it off.
+
+The image or ISO is downloaded once and cached, so the next VM takes seconds.
+
+## Where Hangar keeps things
+
+Everything lives in `~/.hangar`: the VMs in `vms`, downloaded images, IPSWs and ISOs in `cache`, and Hangar's
+network in `network`. Set `HANGAR_HOME` to keep it somewhere else, for the app and the command line alike. To remove
+Hangar completely, shut the VMs down, then delete the app, the `hangar` link in `/usr/local/bin` and `~/.hangar`.
+
+## Where to next
+
+- [Running AI agents](ai-agents.mdx): give a coding agent a whole VM and only the hosts it needs.
+- [Creating VMs](creating-vms.mdx): every guest, image and installer.
+- [Commands](commands.mdx): the everyday commands, and the full list.
+- [Traffic rules](traffic-rules.mdx): watch every connection a VM makes, and decide which ones get through.
+
+Every command has help, too: `hangar help <command>`.

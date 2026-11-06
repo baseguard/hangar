@@ -1,0 +1,15 @@
+[package]
+name = "hangar_sha256"
+version.workspace = true
+description = "SHA-256, for checking the agent Hangar copies into a guest before it is installed"
+categories = ["cryptography"]
+keywords = ["hangar", "sha256"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true

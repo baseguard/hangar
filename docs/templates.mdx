@@ -1,0 +1,101 @@
+---
+title: Templates
+description: A VM's recipe in a .hangarvm file, to make more VMs like it on any Mac.
+section: Use
+order: 4
+---
+
+# Templates
+
+A template is a small JSON file (`.hangarvm`) that says how to make a VM: what it is made from, its size and settings,
+its traffic rules, the secrets it expects and the commands that set it up. Keep one with a project, or send it to a
+teammate; each VM made from it starts from a fresh image, not from a copy of yours.
+
+Nothing of the machine it was saved from goes in: no disk, MAC or IP address, passwords or secret values.
+
+## Save and use one
+
+```sh
+hangar template save go go-dev.hangarvm
+hangar create go2 --template go-dev.hangarvm
+hangar create go3 --template go-dev.hangarvm --memory 16
+```
+
+Options given to `hangar create` override the template's. In the app, choose **Save as Template…** in a VM's menu, and
+**Open Template…** in New Virtual Machine, or double-click a `.hangarvm` file.
+
+## An example
+
+```json
+{
+  "os": "linux",
+  "from": { "cloudImage": "debian" },
+  "cpu": 4,
+  "memory": 8,
+  "disk": 32,
+  "network": "managed",
+  "traffic": {
+    "mode": "allowlist",
+    "allowed": ["github.com", "*.github.com", "deb.debian.org"],
+    "blocked": [],
+    "allowsHost": false,
+    "allowsVMs": false,
+    "allowsLocalNetwork": false,
+    "allowsQUIC": true,
+    "allowsUDP": false
+  },
+  "secrets": [
+    { "name": "GITHUB_TOKEN", "hosts": ["api.github.com"], "header": "Authorization", "prefix": "Bearer" }
+  ],
+  "sharedFolders": [{ "name": "src", "path": "/Users/dev/src", "readOnly": true }],
+  "setup": ["sudo apt-get update", "sudo apt-get install -y golang"]
+}
+```
+
+## Fields
+
+Only `os` is needed; anything left out gets the usual default.
+
+| Field | What it holds |
+|---|---|
+| `os` | `macos`, `linux` or `windows` |
+| `from` | One of: `image` (a registry image, a `.tar` from `hangar export`, or `vanilla`, `base`, `xcode` for macOS), `cloudImage` (`debian` or `ubuntu`), `diskImage` (Linux: a file or an https URL), `iso` (Linux or Windows: a file or an https URL), `ipsw` (macOS: a file, an https URL or `latest`) |
+| `cpu`, `memory`, `disk` | Processors, and memory and disk size in GB |
+| `network` | `managed`, `nat` or `none` |
+| `display` | The screen's width and height, from 640x480 to 7680x4320, and pixels per inch |
+| `traffic` | Traffic rules, in the same form as an exported rules file (see [Traffic rules](traffic-rules.mdx)) |
+| `secrets` | The secrets the VM expects: name, hosts, and optionally the header and the prefix before the value (see [Secrets](secrets.mdx)) |
+| `sharedFolders` | Folders shared with the VM: name, path on the Mac, read-only or not |
+| `clipboard`, `audio`, `rosetta` | `true` or `false`; `rosetta` is for Linux |
+| `cloudInit` | Linux: a `#cloud-config` document or a `#!` script that cloud-init runs on the first start |
+| `setup` | Commands run in order once the VM has first started (see below) |
+
+Hangar refuses a field it doesn't know, so a misspelled one isn't silently dropped.
+
+## Setup commands
+
+The first time Hangar's agent reports in from a VM made from a template, it runs each `setup` command in turn, with
+`sh` on Linux, `zsh` on macOS and `cmd.exe` on Windows, as the user the agent runs commands as, with the VM's
+[secret](secrets.mdx) variables. VMs made from Hangar's images, a cloud image with an account, or the Windows
+installer get the agent by themselves; on any other the commands wait until you install it (see
+[Guest agent](guest-agent.mdx)). The first one that fails stops the rest. The output of all of them goes to
+`setup.log` in the VM's folder.
+
+They run once, whether or not they all worked; to try again, run the commands with `hangar exec`. On Hangar's Linux
+images and its `base` and `xcode` macOS images `sudo` needs no password; on `vanilla` or a Mac installed from an IPSW
+it does, so leave out commands that need it there.
+
+## On another Mac
+
+- **What it will do:** before the VM is made, the app and `hangar create --template` list every folder the template
+  shares with its path on this Mac and whether the VM can change it, the traffic rules, every setup command and the
+  cloud-init user data, which runs as root on the first start. A template you didn't write can share any folder and
+  run any command in its VM, so read the list. A folder shared read-write needs your say: turn on **Share folders
+  read-write** in the app, or give `--allow-write-shares`.
+- **Secrets:** their values never go in the file. The app asks for them when it makes the VM, and shows the hosts each
+  one is sent to; leave one empty to give it later. The command line shows the `hangar secret set` command and the
+  hosts for each.
+- **Files:** a template made from a local ISO, disk, IPSW or image file names the path on the Mac it was saved on. If
+  this Mac doesn't have it, the app asks you to choose it; on the command line give it with `--iso`, `--disk-image`,
+  `--ipsw` or `--image`.
+- **Shared folders** that this Mac doesn't have are left out, with a warning.

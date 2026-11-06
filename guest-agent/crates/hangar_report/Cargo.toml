@@ -1,0 +1,15 @@
+[package]
+name = "hangar_report"
+version.workspace = true
+description = "The memory report the guest agent sends to the host, and the agent's version"
+categories = ["virtualization"]
+keywords = ["hangar", "memory", "report"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true

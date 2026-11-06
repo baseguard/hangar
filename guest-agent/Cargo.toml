@@ -1,0 +1,149 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/hangar_clipboard_link",
+    "crates/hangar_copy",
+    "crates/hangar_error",
+    "crates/hangar_exec",
+    "crates/hangar_exec_frames",
+    "crates/hangar_fs",
+    "crates/hangar_guest_linux",
+    "crates/hangar_guest_macos",
+    "crates/hangar_guest_windows",
+    "crates/hangar_host_commands",
+    "crates/hangar_report",
+    "crates/hangar_sha256",
+    "crates/hangar_spice",
+    "crates/hangar_sys_linux",
+    "crates/hangar_sys_macos",
+    "crates/hangar_sys_unix",
+    "crates/hangar_sys_windows",
+]
+
+[workspace.package]
+edition = "2024"
+license-file = "LICENSE.md"
+publish = false
+readme = "README.md"
+repository = "https://github.com/baseguard/hangar"
+version = "0.0.0"
+
+rust-version = "1.99.1"
+
+[workspace.dependencies]
+libc = "0.2"
+tar = { version = "0.4", default-features = false }
+windows-sys = { version = "0.61", features = [
+    "Win32_Devices_DeviceAndDriverInstallation",
+    "Win32_Devices_Properties",
+    "Win32_Graphics_Gdi",
+    "Win32_Networking_WinSock",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Security_Cryptography",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_Console",
+    "Win32_System_DataExchange",
+    "Win32_System_Environment",
+    "Win32_System_IO",
+    "Win32_System_JobObjects",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
+    "Win32_System_Pipes",
+    "Win32_System_Registry",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_Services",
+    "Win32_System_Shutdown",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+
+hangar_clipboard_link = { path = "crates/hangar_clipboard_link" }
+hangar_copy = { path = "crates/hangar_copy" }
+hangar_error = { path = "crates/hangar_error" }
+hangar_exec = { path = "crates/hangar_exec" }
+hangar_exec_frames = { path = "crates/hangar_exec_frames" }
+hangar_fs = { path = "crates/hangar_fs" }
+hangar_guest_linux = { path = "crates/hangar_guest_linux" }
+hangar_guest_macos = { path = "crates/hangar_guest_macos" }
+hangar_guest_windows = { path = "crates/hangar_guest_windows" }
+hangar_host_commands = { path = "crates/hangar_host_commands" }
+hangar_report = { path = "crates/hangar_report" }
+hangar_sha256 = { path = "crates/hangar_sha256" }
+hangar_spice = { path = "crates/hangar_spice" }
+hangar_sys_linux = { path = "crates/hangar_sys_linux" }
+hangar_sys_macos = { path = "crates/hangar_sys_macos" }
+hangar_sys_unix = { path = "crates/hangar_sys_unix" }
+hangar_sys_windows = { path = "crates/hangar_sys_windows" }
+
+[workspace.lints.rust]
+ambiguous_negative_literals = "warn"
+let_underscore = { level = "warn", priority = -1 }
+missing_debug_implementations = "warn"
+redundant_imports = "warn"
+redundant_lifetimes = "warn"
+trivial_numeric_casts = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "warn"
+
+[workspace.lints.clippy]
+cargo = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Errors are whole-sentence values (hangar_error, io::Error); an `# Errors` section would restate them.
+missing_errors_doc = "allow"
+# Callers always use these results; #[must_use] on every query adds noise and catches nothing here.
+must_use_candidate = "allow"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+clone_on_ref_ptr = "warn"
+expect_used = "warn"
+map_err_ignore = "warn"
+module_name_repetitions = "warn"
+too_long_first_doc_paragraph = "warn"
+undocumented_unsafe_blocks = "warn"
+unused_result_ok = "warn"
+unwrap_used = "warn"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[package]
+name = "hangar-agent"
+version.workspace = true
+description = "Hangar's guest agent: memory reports, shared clipboard and drag and drop for Linux, macOS and Windows guests"
+categories = ["virtualization"]
+keywords = ["hangar", "guest", "agent"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+readme.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+hangar_copy.workspace = true
+hangar_error.workspace = true
+hangar_report.workspace = true
+hangar_sha256.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+hangar_guest_linux.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+hangar_guest_macos.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+hangar_guest_windows.workspace = true
+hangar_sys_windows.workspace = true
+
+[lints]
+workspace = true

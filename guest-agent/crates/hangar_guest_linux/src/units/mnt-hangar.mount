@@ -1,0 +1,11 @@
+[Unit]
+Description=Folders shared by Hangar
+
+[Mount]
+What=hangar
+Where=/mnt/hangar
+Type=virtiofs
+Options=nofail,x-gvfs-show,nosuid,nodev
+
+[Install]
+WantedBy=multi-user.target

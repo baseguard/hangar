@@ -1,0 +1,16 @@
+[Unit]
+Description=Hangar guest agent: memory reports, shutdown, Hangar's CA and variables
+
+[Service]
+ExecStart=/usr/local/libexec/hangar-agent report
+Restart=always
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+# Hangar's CA and its bundles (Debian, Fedora) and the variable files; "-" skips a missing one.
+ReadWritePaths=-/usr/local/share/ca-certificates -/etc/ssl/certs -/etc/pki/ca-trust -/etc/profile.d -/etc/environment.d
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

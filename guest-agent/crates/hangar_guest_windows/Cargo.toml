@@ -1,0 +1,28 @@
+[package]
+name = "hangar_guest_windows"
+version.workspace = true
+description = "The guest agent on Windows guests: install, setup, the service and the session helper"
+categories = ["virtualization"]
+keywords = ["hangar", "guest", "agent"]
+
+edition.workspace = true
+license-file.workspace = true
+publish.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+hangar_clipboard_link.workspace = true
+hangar_error.workspace = true
+hangar_exec.workspace = true
+hangar_exec_frames.workspace = true
+hangar_fs.workspace = true
+hangar_host_commands.workspace = true
+hangar_report.workspace = true
+hangar_sha256.workspace = true
+hangar_spice.workspace = true
+hangar_sys_windows.workspace = true
+windows-sys.workspace = true
+
+[lints]
+workspace = true
