@@ -1,7 +1,5 @@
 use std::{error, fs::Permissions, process};
 
-use hangar_sys_macos as macos;
-
 use super::{homebrew::*, tools::*, *};
 
 type TestResult = std::result::Result<(), Box<dyn error::Error>>;
@@ -124,19 +122,4 @@ fn the_last_tools_label_is_installed() {
 
     assert_eq!(label, Some("Command Line Tools for Xcode-16.1"));
     assert_eq!(none, None);
-}
-
-#[test]
-fn digests_are_sha256() {
-    let digest = |data: &[u8]| macos::sha256(data).map(|digest| hex(&digest));
-
-    assert_eq!(
-        digest(b"abc").as_deref(),
-        Some("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
-    );
-
-    assert_eq!(
-        digest(b"").as_deref(),
-        Some("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
-    );
 }

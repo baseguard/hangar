@@ -12,6 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [target.'cfg(windows)'.dependencies]
+windows-service.workspace = true
 windows-sys.workspace = true
 
 [lints]

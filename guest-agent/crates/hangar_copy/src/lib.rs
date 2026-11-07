@@ -9,7 +9,6 @@ mod copy_in;
 mod copy_out;
 mod drop;
 mod entry_name;
-mod json;
 mod list;
 mod tar_reader;
 mod tar_writer;

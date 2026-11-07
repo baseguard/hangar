@@ -16,6 +16,7 @@ hangar_error.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 libc.workspace = true
+nix.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-sys.workspace = true

@@ -1,5 +1,5 @@
-//! Process-wide macOS calls: memory, the console user, passwords, digests, serial ports and
-//! temporary folders.
+//! Process-wide macOS calls: memory, the console user, passwords, serial ports and temporary
+//! folders.
 
 use std::{
     ffi::{CStr, CString, c_char, c_void},
@@ -9,12 +9,15 @@ use std::{
     ptr::{null, null_mut},
 };
 
+use nix::{
+    sys::termios::{SetArg, cfmakeraw, tcgetattr, tcsetattr},
+    unistd::{dup2_stderr, mkdtemp},
+};
+
 /// `RPP_ECHO_OFF`: `readpassphrase` reads without echoing.
 const RPP_ECHO_OFF: i32 = 0;
 /// The longest password `readpassphrase` reads, NUL included; longer input is cut off.
 const PASSWORD_LIMIT: usize = 256;
-/// `CC_SHA256_DIGEST_LENGTH`.
-const SHA256_LENGTH: usize = 32;
 
 #[link(name = "SystemConfiguration", kind = "framework")]
 unsafe extern "C" {
@@ -30,7 +33,7 @@ unsafe extern "C" {
     fn CFRelease(object: *const c_void);
 }
 
-// readpassphrase and CommonCrypto, in libSystem.
+// readpassphrase, in libSystem.
 unsafe extern "C" {
     fn readpassphrase(
         prompt: *const c_char,
@@ -38,7 +41,6 @@ unsafe extern "C" {
         size: usize,
         flags: i32,
     ) -> *mut c_char;
-    fn CC_SHA256(data: *const c_void, length: u32, digest: *mut u8) -> *mut u8;
 }
 
 /// `hw.memsize`, in bytes.
@@ -139,56 +141,22 @@ fn wipe(buffer: &mut [c_char]) {
     std::sync::atomic::compiler_fence(std::sync::atomic::Ordering::SeqCst);
 }
 
-/// The SHA-256 digest of `data`; `None` for 4 GiB or more, which the one-shot call can't take.
-pub fn sha256(data: &[u8]) -> Option<[u8; SHA256_LENGTH]> {
-    let length = u32::try_from(data.len()).ok()?;
-    let mut digest = [0; SHA256_LENGTH];
-
-    // SAFETY: `data` is readable for `length` bytes and `digest` is writable for a whole digest.
-    unsafe { CC_SHA256(data.as_ptr().cast(), length, digest.as_mut_ptr()) };
-    Some(digest)
-}
-
 /// Puts a serial port in raw mode so bytes pass through unchanged. A tty's line discipline
 /// would otherwise echo what the host sends, turn `\n` into `\r\n` and act on control bytes.
 pub fn make_raw(port: &impl AsFd) -> io::Result<()> {
-    let fd = port.as_fd().as_raw_fd();
-    // SAFETY: `termios` is plain data for which all-zero bytes are a valid value.
-    let mut settings: libc::termios = unsafe { std::mem::zeroed() };
-
-    // SAFETY: `fd` stays open for the call and `settings` is a writable `termios`.
-    if unsafe { libc::tcgetattr(fd, &raw mut settings) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
-
-    // SAFETY: `settings` is a valid `termios`, filled in by `tcgetattr`.
-    unsafe { libc::cfmakeraw(&raw mut settings) };
-
-    // SAFETY: `fd` stays open for the call and `settings` is a valid `termios`.
-    if unsafe { libc::tcsetattr(fd, libc::TCSANOW, &raw const settings) } != 0 {
-        return Err(io::Error::last_os_error());
-    }
+    let mut settings = tcgetattr(port)?;
+    cfmakeraw(&mut settings);
+    tcsetattr(port, SetArg::TCSANOW, &settings)?;
     Ok(())
 }
 
 /// A new folder only this user can open, inside the user's temporary folder.
 pub fn temporary_folder(prefix: &str) -> io::Result<String> {
-    let parent = std::env::temp_dir()
+    let template = std::env::temp_dir().join(format!("{prefix}.XXXXXX"));
+    mkdtemp(&template)?
         .into_os_string()
         .into_string()
-        .map_err(|_not_utf8| io::Error::from(io::ErrorKind::InvalidData))?;
-    let mut template = format!("{}/{prefix}.XXXXXX\0", parent.trim_end_matches('/')).into_bytes();
-
-    // SAFETY: `template` is a writable, NUL-terminated buffer ending in `XXXXXX` before the NUL,
-    // which `mkdtemp` replaces in place.
-    let made = unsafe { libc::mkdtemp(template.as_mut_ptr().cast()) };
-
-    if made.is_null() {
-        return Err(io::Error::last_os_error());
-    }
-
-    template.pop();
-    String::from_utf8(template).map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))
+        .map_err(|_not_utf8| io::Error::from(io::ErrorKind::InvalidData))
 }
 
 /// Only one opening of the port at a time, so another user's agent can't read along; root still
@@ -205,12 +173,9 @@ pub fn make_exclusive(port: &impl AsFd) -> io::Result<()> {
 }
 
 /// From here on the process's stderr, panics included, goes to `file`.
+/// fd 2 becomes a copy of `file`, which stays open after `file` closes.
 pub fn send_stderr_to(file: &File) -> io::Result<()> {
-    // SAFETY: `file` stays open for the call; `dup2` makes fd 2 a copy of it, which stays open
-    // after `file` closes.
-    if unsafe { libc::dup2(file.as_raw_fd(), libc::STDERR_FILENO) } == -1 {
-        return Err(io::Error::last_os_error());
-    }
+    dup2_stderr(file)?;
     Ok(())
 }
 

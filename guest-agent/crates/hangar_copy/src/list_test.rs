@@ -5,6 +5,14 @@ use std::{
 };
 
 use super::*;
+
+/// The line `write_listing` writes, without its line break.
+fn json_of(listing: &Listing) -> String {
+    let mut output = Vec::new();
+    let written = write_listing(listing, &mut output);
+    assert!(written.is_ok(), "{written:?}");
+    String::from_utf8_lossy(&output).trim_end().to_string()
+}
 use crate::tests::{TestResult, failure, temporary_folder, text, time, write_file};
 
 const FILE_TIME: u64 = 1_700_000_000;
@@ -45,7 +53,7 @@ fn a_listing_is_one_json_object_in_the_hosts_shape() {
         ],
     };
 
-    let json = to_json(&listing);
+    let json = json_of(&listing);
 
     assert_eq!(
         json,
@@ -73,7 +81,7 @@ fn a_name_that_lost_characters_is_marked_lossy() {
         }],
     };
 
-    let json = to_json(&listing);
+    let json = json_of(&listing);
 
     assert_eq!(
         json,
@@ -105,7 +113,7 @@ fn a_root_has_a_null_parent_and_an_empty_folder_no_entries() {
         entries: Vec::new(),
     };
 
-    let json = to_json(&listing);
+    let json = json_of(&listing);
 
     assert_eq!(
         json,

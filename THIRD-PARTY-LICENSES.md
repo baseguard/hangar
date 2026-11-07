@@ -24,7 +24,8 @@ Hangar.app and the `hangar` command line (Swift packages):
 | mcp-swift-sdk | 0.12.1 | Apache 2.0; contributions not yet relicensed stay MIT | The Model Context Protocol project contributors |
 | EventSource | 1.6.0 | MIT | 2025 Mattt |
 
-The guest agents (Rust crates; each is offered under MIT or Apache 2.0, and Hangar uses it under MIT):
+The guest agents (Rust crates; each is offered under MIT, most also under Apache 2.0 or the Unlicense, and Hangar
+uses it under MIT):
 
 | Crate | Version | Agents | Copyright |
 |---|---|---|---|
@@ -35,6 +36,26 @@ The guest agents (Rust crates; each is offered under MIT or Apache 2.0, and Hang
 | cfg-if | 1.0.5 | Linux, macOS, Windows | 2014 Alex Crichton |
 | windows-sys | 0.61.2 | Windows | Microsoft Corporation |
 | windows-link | 0.2.1 | Windows | Microsoft Corporation |
+| windows-service | 0.8.1 | Windows | 2018 Amagicom AB (Mullvad VPN) |
+| widestring | 1.2.1 | Windows | Kathryn Long |
+| bitflags | 2.13.2 | Linux, macOS, Windows | 2014 The Rust Project Developers |
+| nix | 0.31.3 | Linux, macOS | 2015 Carl Lerche + nix-rust Authors |
+| memoffset | 0.9.1 | Linux, macOS | 2017 Gilad Naaman |
+| sha2 | 0.11.1 | Linux, macOS, Windows | RustCrypto Developers |
+| digest | 0.11.3 | Linux, macOS, Windows | RustCrypto Developers |
+| block-buffer | 0.12.1 | Linux, macOS, Windows | RustCrypto Developers |
+| crypto-common | 0.2.2 | Linux, macOS, Windows | RustCrypto Developers |
+| hybrid-array | 0.4.15 | Linux, macOS, Windows | RustCrypto Developers |
+| cpufeatures | 0.3.1 | Linux, macOS, Windows | RustCrypto Developers |
+| const-oid | 0.10.2 | Linux, macOS, Windows | RustCrypto Developers |
+| typenum | 1.20.1 | Linux, macOS, Windows | 2014 Paho Lurie-Gregg |
+| hex | 0.4.3 | Linux, macOS, Windows | 2013-2014 The Rust Project Developers; 2015-2020 The rust-hex Developers |
+| serde | 1.0.229 | Linux, macOS, Windows | Erick Tryzelaar and David Tolnay |
+| serde_core | 1.0.229 | Linux, macOS, Windows | Erick Tryzelaar and David Tolnay |
+| serde_json | 1.0.154 | Linux, macOS, Windows | Erick Tryzelaar and David Tolnay |
+| itoa | 1.0.18 | Linux, macOS, Windows | David Tolnay |
+| zmij | 1.0.23 | Linux, macOS, Windows | David Tolnay |
+| memchr | 2.8.3 | Linux, macOS, Windows | Andrew Gallant and bluss |
 
 ## Apache License 2.0
 

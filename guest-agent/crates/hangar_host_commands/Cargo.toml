@@ -11,5 +11,8 @@ publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[dependencies]
+hex.workspace = true
+
 [lints]
 workspace = true

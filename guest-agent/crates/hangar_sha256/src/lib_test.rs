@@ -28,29 +28,6 @@ fn known_inputs_give_the_published_hashes() {
 }
 
 #[test]
-fn inputs_at_the_padding_edges_hash_correctly() {
-    // 55 bytes still fit the length in their block; 64 need a block of padding of their own.
-    assert_eq!(
-        hex_of(&[b'a'; 55]),
-        "9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318"
-    );
-    assert_eq!(
-        hex_of(&[b'a'; 64]),
-        "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb"
-    );
-}
-
-#[test]
-fn a_million_bytes_hash_correctly() {
-    let data = vec![b'a'; 1_000_000];
-
-    assert_eq!(
-        hex_of(&data),
-        "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"
-    );
-}
-
-#[test]
 fn lowercase_hex_reads_back_as_the_same_hash() {
     let hash = Sha256::of(b"abc");
 

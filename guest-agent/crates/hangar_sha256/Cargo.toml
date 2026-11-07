@@ -1,7 +1,7 @@
 [package]
 name = "hangar_sha256"
 version.workspace = true
-description = "SHA-256, for checking the agent Hangar copies into a guest before it is installed"
+description = "The SHA-256 hash Hangar names the agent it copies into a guest by"
 categories = ["cryptography"]
 keywords = ["hangar", "sha256"]
 
@@ -10,6 +10,10 @@ license-file.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true
+
+[dependencies]
+hex.workspace = true
+sha2.workspace = true
 
 [lints]
 workspace = true

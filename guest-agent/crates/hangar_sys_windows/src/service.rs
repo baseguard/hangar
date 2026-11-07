@@ -1,40 +1,34 @@
 //! The service manager: creating, configuring, starting and stopping a service, and running as one.
 
 use std::{
-    ffi::c_void,
-    io,
+    ffi::{OsStr, OsString},
+    fmt, io,
     path::Path,
-    ptr::{null, null_mut},
-    sync::{
-        OnceLock,
-        atomic::{AtomicPtr, Ordering},
-    },
+    sync::OnceLock,
     time::Duration,
 };
 
-use windows_sys::{
-    Win32::{
-        Foundation::{ERROR_CALL_NOT_IMPLEMENTED, ERROR_SERVICE_DOES_NOT_EXIST, NO_ERROR},
-        System::Services::{
-            ChangeServiceConfig2W, ChangeServiceConfigW, CloseServiceHandle, ControlService,
-            CreateServiceW, OpenSCManagerW, OpenServiceW, QueryServiceStatus,
-            RegisterServiceCtrlHandlerExW, SC_ACTION, SC_ACTION_RESTART, SC_HANDLE,
-            SC_MANAGER_CONNECT, SC_MANAGER_CREATE_SERVICE, SERVICE_ACCEPT_SHUTDOWN,
-            SERVICE_ACCEPT_STOP, SERVICE_ALL_ACCESS, SERVICE_AUTO_START,
-            SERVICE_CONFIG_DESCRIPTION, SERVICE_CONFIG_FAILURE_ACTIONS,
-            SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO, SERVICE_CONTROL_INTERROGATE,
-            SERVICE_CONTROL_SHUTDOWN, SERVICE_CONTROL_STOP, SERVICE_DESCRIPTIONW,
-            SERVICE_ERROR_NORMAL, SERVICE_FAILURE_ACTIONSW, SERVICE_QUERY_STATUS,
-            SERVICE_REQUIRED_PRIVILEGES_INFOW, SERVICE_RUNNING, SERVICE_START, SERVICE_START_TYPE,
-            SERVICE_STATUS, SERVICE_STATUS_CURRENT_STATE, SERVICE_STOP, SERVICE_STOPPED,
-            SERVICE_TABLE_ENTRYW, SERVICE_WIN32_OWN_PROCESS, SetServiceStatus,
-            StartServiceCtrlDispatcherW, StartServiceW,
-        },
+use windows_service::{
+    Error as ServiceError, define_windows_service,
+    service::{
+        ServiceAccess, ServiceAction, ServiceActionType, ServiceControl, ServiceControlAccept,
+        ServiceDependency, ServiceErrorControl, ServiceExitCode, ServiceFailureActions,
+        ServiceFailureResetPeriod, ServiceInfo, ServiceStartType, ServiceState, ServiceStatus,
+        ServiceType,
     },
-    core::PWSTR,
+    service_control_handler::{self, ServiceControlHandlerResult, ServiceStatusHandle},
+    service_dispatcher,
+    service_manager::{ServiceManager, ServiceManagerAccess},
+};
+use windows_sys::Win32::{
+    Foundation::ERROR_SERVICE_DOES_NOT_EXIST,
+    System::Services::{
+        ChangeServiceConfig2W, SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO,
+        SERVICE_REQUIRED_PRIVILEGES_INFOW,
+    },
 };
 
-use super::{check, milliseconds, program_command_line, wide};
+use super::{check, program_command_line};
 
 #[derive(Debug)]
 pub struct Settings<'a> {
@@ -60,183 +54,92 @@ pub enum RunAs {
 }
 
 impl Start {
-    fn code(self) -> SERVICE_START_TYPE {
+    fn start_type(self) -> ServiceStartType {
         match self {
-            Start::Automatic => SERVICE_AUTO_START,
+            Start::Automatic => ServiceStartType::AutoStart,
         }
     }
 }
 
 impl RunAs {
-    /// Null: `CreateServiceW` then uses `LocalSystem`, and `ChangeServiceConfigW` keeps the
-    /// account the service was created with.
-    fn name(self) -> *const u16 {
+    /// None: creating the service then uses `LocalSystem`, and changing it keeps the account the
+    /// service was created with.
+    fn account(self) -> Option<OsString> {
         match self {
-            RunAs::LocalSystem => null(),
+            RunAs::LocalSystem => None,
         }
     }
 }
 
-#[derive(Debug)]
-pub struct Service {
-    handle: ServiceHandle,
+pub struct Service(windows_service::service::Service);
+
+impl fmt::Debug for Service {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("Service").finish_non_exhaustive()
+    }
 }
 
-struct Running {
-    name: Vec<u16>,
-    work: fn(),
-}
-
-/// The service manager calls `service_main` with no context argument, so it finds its work here.
-static RUNNING: OnceLock<Running> = OnceLock::new();
+/// The service manager calls the service's main function with no context, so it finds the
+/// service's name and work here.
+static RUNNING: OnceLock<(OsString, fn())> = OnceLock::new();
 /// `control` reports through this handle, which exists only after `control` is registered.
-static STATUS: AtomicPtr<c_void> = AtomicPtr::new(null_mut());
+static STATUS: OnceLock<ServiceStatusHandle> = OnceLock::new();
+
+define_windows_service!(ffi_service_main, service_main);
 
 /// Hands this thread to the service manager, which runs `work` on a thread of its own.
 pub fn serve(name: &str, work: fn()) -> io::Result<()> {
-    let name = wide(name);
-    let running = Running {
-        name: name.clone(),
-        work,
-    };
-
-    if RUNNING.set(running).is_err() {
+    if RUNNING.set((OsString::from(name), work)).is_err() {
         return Err(io::ErrorKind::AlreadyExists.into());
     }
-
-    let table = [
-        SERVICE_TABLE_ENTRYW {
-            lpServiceName: name.as_ptr().cast_mut(),
-            lpServiceProc: Some(service_main),
-        },
-        SERVICE_TABLE_ENTRYW {
-            lpServiceName: null_mut(),
-            lpServiceProc: None,
-        },
-    ];
-
-    // SAFETY: the table ends with an empty entry; its name is NUL-terminated (`wide`) and never
-    // written; both are locals that outlive the call, which returns once the service has stopped.
-    check(unsafe { StartServiceCtrlDispatcherW(table.as_ptr()) })
+    service_dispatcher::start(name, ffi_service_main).map_err(io_error)
 }
 
 impl Service {
     pub fn open_to_configure(name: &str) -> io::Result<Option<Service>> {
-        open(name, SERVICE_ALL_ACCESS)
+        open(name, ServiceAccess::ALL_ACCESS)
     }
 
     pub fn open_to_start(name: &str) -> io::Result<Option<Service>> {
-        open(name, SERVICE_START)
+        open(name, ServiceAccess::START)
     }
 
     pub fn open_to_stop(name: &str) -> io::Result<Option<Service>> {
-        open(name, SERVICE_STOP | SERVICE_QUERY_STATUS)
+        open(name, ServiceAccess::STOP | ServiceAccess::QUERY_STATUS)
     }
 
     pub fn create(settings: &Settings) -> io::Result<Service> {
-        let manager = open_manager(SC_MANAGER_CONNECT | SC_MANAGER_CREATE_SERVICE)?;
-        let name = wide(settings.name);
-        let display_name = wide(settings.display_name);
-        let command = wide(&program_command_line(settings.program, settings.arguments)?);
-        let dependencies = string_list(settings.dependencies);
-
-        // SAFETY: `manager` stays open until it drops; the strings are locals NUL-terminated by
-        // `wide` and `string_list` (the list doubly) that outlive the call; the account name is
-        // null (LocalSystem), and no password goes with it.
-        let service = unsafe {
-            CreateServiceW(
-                manager.0,
-                name.as_ptr(),
-                display_name.as_ptr(),
-                SERVICE_ALL_ACCESS,
-                SERVICE_WIN32_OWN_PROCESS,
-                settings.start.code(),
-                SERVICE_ERROR_NORMAL,
-                command.as_ptr(),
-                null(),
-                null_mut(),
-                dependencies.as_ptr(),
-                settings.run_as.name(),
-                null(),
-            )
-        };
-
-        if service.is_null() {
-            return Err(io::Error::last_os_error());
-        }
-
-        Ok(Service {
-            handle: ServiceHandle(service),
-        })
+        let access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
+        let manager = ServiceManager::local_computer(None::<&str>, access).map_err(io_error)?;
+        let service = manager
+            .create_service(&service_info(settings)?, ServiceAccess::ALL_ACCESS)
+            .map_err(io_error)?;
+        Ok(Service(service))
     }
 
     pub fn update(&self, settings: &Settings) -> io::Result<()> {
-        let display_name = wide(settings.display_name);
-        let command = wide(&program_command_line(settings.program, settings.arguments)?);
-        let dependencies = string_list(settings.dependencies);
-
-        // SAFETY: `self` keeps the service handle open until it drops; the strings are locals
-        // NUL-terminated by `wide` and `string_list` (the list doubly) that outlive the call; null
-        // leaves the account and the other settings unchanged.
-        check(unsafe {
-            ChangeServiceConfigW(
-                self.handle.0,
-                SERVICE_WIN32_OWN_PROCESS,
-                settings.start.code(),
-                SERVICE_ERROR_NORMAL,
-                command.as_ptr(),
-                null(),
-                null_mut(),
-                dependencies.as_ptr(),
-                settings.run_as.name(),
-                null(),
-                display_name.as_ptr(),
-            )
-        })
+        self.0
+            .change_config(&service_info(settings)?)
+            .map_err(io_error)
     }
 
     pub fn set_description(&self, description: &str) -> io::Result<()> {
-        let mut text = wide(description);
-        let info = SERVICE_DESCRIPTIONW {
-            lpDescription: text.as_mut_ptr(),
-        };
-
-        // SAFETY: `self` keeps the service handle open until it drops; `info` and `text` are
-        // locals that outlive the call.
-        check(unsafe {
-            ChangeServiceConfig2W(
-                self.handle.0,
-                SERVICE_CONFIG_DESCRIPTION,
-                (&raw const info).cast(),
-            )
-        })
+        self.0.set_description(description).map_err(io_error)
     }
 
     pub fn restart_on_failure(&self, delay: Duration, reset_period: Duration) -> io::Result<()> {
-        let reset_period = u32::try_from(reset_period.as_secs())
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
-        let mut restart = SC_ACTION {
-            Type: SC_ACTION_RESTART,
-            Delay: milliseconds(delay),
+        let restart = ServiceAction {
+            action_type: ServiceActionType::Restart,
+            delay,
         };
-        let info = SERVICE_FAILURE_ACTIONSW {
-            dwResetPeriod: reset_period,
-            lpRebootMsg: null_mut(),
-            lpCommand: null_mut(),
-            cActions: 1,
-            lpsaActions: &raw mut restart,
-        };
-
-        // SAFETY: `self` keeps the service handle open until it drops; `info` and the one action
-        // it points at are locals that outlive the call; null leaves the reboot message and
-        // command unset.
-        check(unsafe {
-            ChangeServiceConfig2W(
-                self.handle.0,
-                SERVICE_CONFIG_FAILURE_ACTIONS,
-                (&raw const info).cast(),
-            )
-        })
+        self.0
+            .update_failure_actions(ServiceFailureActions {
+                reset_period: ServiceFailureResetPeriod::After(reset_period),
+                reboot_msg: None,
+                command: None,
+                actions: Some(vec![restart]),
+            })
+            .map_err(io_error)
     }
 
     /// Windows takes every other privilege out of the service's token when it next starts.
@@ -246,11 +149,12 @@ impl Service {
             pmszRequiredPrivileges: names.as_mut_ptr(),
         };
 
+        // The service crate has no call for this setting.
         // SAFETY: `self` keeps the service handle open until it drops; `info` and the doubly
         // NUL-terminated list it points at (`string_list`) are locals that outlive the call.
         check(unsafe {
             ChangeServiceConfig2W(
-                self.handle.0,
+                self.0.raw_handle(),
                 SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO,
                 (&raw const info).cast(),
             )
@@ -258,131 +162,118 @@ impl Service {
     }
 
     pub fn start(&self) -> io::Result<()> {
-        // SAFETY: `self` keeps the service handle open until it drops; no arguments.
-        check(unsafe { StartServiceW(self.handle.0, 0, null()) })
+        self.0.start::<&OsStr>(&[]).map_err(io_error)
     }
 
     pub fn request_stop(&self) -> io::Result<()> {
-        let mut status = empty_status();
-        // SAFETY: `self` keeps the service handle open until it drops; `status` is a local.
-        check(unsafe { ControlService(self.handle.0, SERVICE_CONTROL_STOP, &raw mut status) })
+        self.0.stop().map(drop).map_err(io_error)
     }
 
     pub fn is_stopped(&self) -> io::Result<bool> {
-        let mut status = empty_status();
-        // SAFETY: `self` keeps the service handle open until it drops; `status` is a local.
-        check(unsafe { QueryServiceStatus(self.handle.0, &raw mut status) })?;
-        Ok(status.dwCurrentState == SERVICE_STOPPED)
+        let status = self.0.query_status().map_err(io_error)?;
+        Ok(status.current_state == ServiceState::Stopped)
     }
 }
 
-extern "system" fn service_main(_count: u32, _arguments: *mut PWSTR) {
-    let Some(running) = RUNNING.get() else { return };
+/// The settings as the service manager takes them. The arguments must be plain words, which
+/// `program_command_line` checks, so no quoting rule can split or join them.
+fn service_info(settings: &Settings) -> io::Result<ServiceInfo> {
+    program_command_line(settings.program, settings.arguments)?;
 
-    // SAFETY: `serve` stored the name, NUL-terminated by `wide`, in a static; `control` takes no
-    // context.
-    let status =
-        unsafe { RegisterServiceCtrlHandlerExW(running.name.as_ptr(), Some(control), null_mut()) };
+    Ok(ServiceInfo {
+        name: settings.name.into(),
+        display_name: settings.display_name.into(),
+        service_type: ServiceType::OWN_PROCESS,
+        start_type: settings.start.start_type(),
+        error_control: ServiceErrorControl::Normal,
+        executable_path: settings.program.to_path_buf(),
+        launch_arguments: settings.arguments.iter().map(OsString::from).collect(),
+        dependencies: settings
+            .dependencies
+            .iter()
+            .map(|name| ServiceDependency::Service(name.into()))
+            .collect(),
+        account_name: settings.run_as.account(),
+        account_password: None,
+    })
+}
 
-    if status.is_null() {
-        // Without a status handle nothing can be reported; the service manager's start times out.
+fn service_main(_arguments: Vec<OsString>) {
+    let Some((name, work)) = RUNNING.get() else {
         return;
-    }
+    };
+    // Without a status handle nothing can be reported; the service manager's start times out.
+    let Ok(status) = service_control_handler::register(name, control) else {
+        return;
+    };
 
-    STATUS.store(status, Ordering::Release);
-    report(SERVICE_RUNNING);
-    (running.work)();
-    report(SERVICE_STOPPED);
+    STATUS.get_or_init(|| status);
+    report(ServiceState::Running);
+    work();
+    report(ServiceState::Stopped);
 }
 
 /// The work never returns, so a stop is answered by reporting STOPPED while it runs; the main
 /// thread's dispatcher then returns, and the process ends with the work.
-extern "system" fn control(
-    code: u32,
-    _kind: u32,
-    _data: *mut c_void,
-    _context: *mut c_void,
-) -> u32 {
-    match code {
-        SERVICE_CONTROL_STOP | SERVICE_CONTROL_SHUTDOWN => {
-            report(SERVICE_STOPPED);
-            NO_ERROR
+fn control(event: ServiceControl) -> ServiceControlHandlerResult {
+    match event {
+        ServiceControl::Stop | ServiceControl::Shutdown => {
+            report(ServiceState::Stopped);
+            ServiceControlHandlerResult::NoError
         }
-        SERVICE_CONTROL_INTERROGATE => NO_ERROR,
-        _ => ERROR_CALL_NOT_IMPLEMENTED,
+        ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
+        _ => ServiceControlHandlerResult::NotImplemented,
     }
 }
 
-fn report(state: SERVICE_STATUS_CURRENT_STATE) {
-    let accepted = if state == SERVICE_RUNNING {
-        SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN
-    } else {
-        0
+fn report(state: ServiceState) {
+    let Some(status) = STATUS.get() else {
+        return;
     };
-
-    let status = SERVICE_STATUS {
-        dwServiceType: SERVICE_WIN32_OWN_PROCESS,
-        dwCurrentState: state,
-        dwControlsAccepted: accepted,
-        dwWin32ExitCode: NO_ERROR,
-        dwServiceSpecificExitCode: 0,
-        dwCheckPoint: 0,
-        dwWaitHint: 0,
+    let controls_accepted = if state == ServiceState::Running {
+        ServiceControlAccept::STOP | ServiceControlAccept::SHUTDOWN
+    } else {
+        ServiceControlAccept::empty()
     };
 
     // A failed report leaves the service manager with the last state; there is nobody else to tell.
-    // SAFETY: `STATUS` holds the handle `service_main` registered, which needs no closing and stays
-    // valid while the process runs; `status` is a complete local.
-    unsafe { SetServiceStatus(STATUS.load(Ordering::Acquire), &raw const status) };
+    status
+        .set_service_status(ServiceStatus {
+            service_type: ServiceType::OWN_PROCESS,
+            current_state: state,
+            controls_accepted,
+            exit_code: ServiceExitCode::Win32(0),
+            checkpoint: 0,
+            wait_hint: Duration::ZERO,
+            process_id: None,
+        })
+        .unwrap_or(());
 }
 
-#[derive(Debug)]
-struct ServiceHandle(SC_HANDLE);
+fn open(name: &str, access: ServiceAccess) -> io::Result<Option<Service>> {
+    let manager = ServiceManager::local_computer(None::<&str>, ServiceManagerAccess::CONNECT)
+        .map_err(io_error)?;
 
-impl Drop for ServiceHandle {
-    fn drop(&mut self) {
-        // SAFETY: the handle was opened by the service manager and is closed exactly once, here.
-        unsafe { CloseServiceHandle(self.0) };
+    match manager.open_service(name, access) {
+        Ok(service) => Ok(Some(Service(service))),
+        Err(ServiceError::Winapi(error))
+            if error.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.cast_signed()) =>
+        {
+            Ok(None)
+        }
+        Err(error) => Err(io_error(error)),
     }
 }
 
-fn open_manager(access: u32) -> io::Result<ServiceHandle> {
-    // SAFETY: null names mean this machine and its active services database.
-    let manager = unsafe { OpenSCManagerW(null(), null(), access) };
-
-    if manager.is_null() {
-        return Err(io::Error::last_os_error());
+/// The system's own error where there is one, so callers can still tell which it was.
+fn io_error(error: ServiceError) -> io::Error {
+    match error {
+        ServiceError::Winapi(error) => error,
+        other => io::Error::other(other),
     }
-
-    Ok(ServiceHandle(manager))
 }
 
-fn open(name: &str, access: u32) -> io::Result<Option<Service>> {
-    let manager = open_manager(SC_MANAGER_CONNECT)?;
-    let name = wide(name);
-    // SAFETY: `manager` stays open until it drops, and `name` is NUL-terminated (`wide`).
-    let service = unsafe { OpenServiceW(manager.0, name.as_ptr(), access) };
-
-    if !service.is_null() {
-        return Ok(Some(Service {
-            handle: ServiceHandle(service),
-        }));
-    }
-
-    let error = io::Error::last_os_error();
-    if error.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.cast_signed()) {
-        return Ok(None);
-    }
-
-    Err(error)
-}
-
-fn empty_status() -> SERVICE_STATUS {
-    // SAFETY: `SERVICE_STATUS` is plain data for which all-zero bytes are a valid value.
-    unsafe { std::mem::zeroed() }
-}
-
-/// NUL-terminated strings closed by an empty one, as dependency lists are; empty, it's two NULs.
+/// NUL-terminated strings closed by an empty one, as privilege lists are; empty, it's two NULs.
 fn string_list(names: &[&str]) -> Vec<u16> {
     let mut units = Vec::new();
     for name in names {
