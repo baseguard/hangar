@@ -1,13 +1,14 @@
 import HangarSupport
+import MCP
 
 /// A tool call's arguments, read the way `hangar` takes them. A value that starts with "-" is refused, so an argument
 /// can't turn into an option: a VM named "--all" would stop every VM.
 struct MCPArguments: Sendable {
-    let fields: [String: JSONValue]
+    let fields: [String: Value]
 
     func string(_ key: String) throws -> String? {
         guard let value = fields[key], value != .null else { return nil }
-        guard let text = value.string else { throw HangarError("\(key) must be a string.") }
+        guard let text = value.stringValue else { throw HangarError("\(key) must be a string.") }
         return try checked(text, key)
     }
 
@@ -18,26 +19,36 @@ struct MCPArguments: Sendable {
 
     /// The command for the guest's shell goes after the VM, where `hangar exec` reads no options.
     func command(_ key: String) throws -> String {
-        guard let text = fields[key]?.string, !text.isEmpty else { throw HangarError("Give \(key).") }
+        guard let text = fields[key]?.stringValue, !text.isEmpty else { throw HangarError("Give \(key).") }
         return text
     }
 
     func int(_ key: String) throws -> Int? {
         guard let value = fields[key], value != .null else { return nil }
-        guard let number = value.int else { throw HangarError("\(key) must be a whole number.") }
+        guard let number = Self.wholeNumber(value) else { throw HangarError("\(key) must be a whole number.") }
         return number
     }
 
     func bool(_ key: String) throws -> Bool? {
         guard let value = fields[key], value != .null else { return nil }
-        guard let flag = value.bool else { throw HangarError("\(key) must be true or false.") }
+        guard let flag = value.boolValue else { throw HangarError("\(key) must be true or false.") }
         return flag
     }
 
     func strings(_ key: String) throws -> [String] {
         guard let value = fields[key], value != .null else { return [] }
-        guard let texts = value.strings else { throw HangarError("\(key) must be a list of strings.") }
-        return try texts.map { try checked($0, key) }
+        guard let values = value.arrayValue else { throw HangarError("\(key) must be a list of strings.") }
+        return try values.map { item in
+            guard let text = item.stringValue else { throw HangarError("\(key) must be a list of strings.") }
+            return try checked(text, key)
+        }
+    }
+
+    /// 2 and 2.0 are two processors; 2.5 is no number of processors.
+    private static func wholeNumber(_ value: Value) -> Int? {
+        if let number = value.intValue { return number }
+        guard let number = value.doubleValue, number.rounded() == number else { return nil }
+        return Int(exactly: number)
     }
 
     private func checked(_ text: String, _ key: String) throws -> String {

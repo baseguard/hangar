@@ -26,8 +26,9 @@ final class MCPCommandRunner: Sendable {
 
     private let executable: URL
     private let turns: OperationQueue
-    /// The requests waiting for their turn; a request cancelled while it waits is taken out and never runs.
-    private let queuedRequests = Mutex<Set<String>>([])
+    /// The requests whose command hasn't started; a request cancelled before its command starts is taken out and
+    /// never runs.
+    private let unstartedRequests = Mutex<Set<String>>([])
     /// The children still running, by the request that started them, so a cancelled request stops its command.
     private let children = Mutex<[String: pid_t]>([:])
     private let stoppedRequests = Mutex<[String: Stop]>([:])
@@ -38,24 +39,30 @@ final class MCPCommandRunner: Sendable {
         turns.maxConcurrentOperationCount = Self.maximumRunning
     }
 
-    func run(_ invocation: MCPTool.Invocation, for request: String) async -> Result {
-        queuedRequests.withLock { _ = $0.insert(request) }
-        return await withCheckedContinuation { continuation in
-            turns.addOperation {
-                continuation.resume(returning: self.runUnlessCancelled(invocation, for: request))
+    /// Cancelling the calling task stops the command, or keeps it from starting while it waits for its turn.
+    func run(_ invocation: MCPTool.Invocation) async -> Result {
+        let request = UUID().uuidString
+        unstartedRequests.withLock { _ = $0.insert(request) }
+        return await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                turns.addOperation {
+                    continuation.resume(returning: self.runUnlessCancelled(invocation, for: request))
+                }
             }
+        } onCancel: {
+            cancel(request)
         }
     }
 
-    func cancel(_ request: String) {
-        let wasQueued = queuedRequests.withLock { $0.remove(request) != nil }
-        guard !wasQueued else { return }
+    private func cancel(_ request: String) {
+        let wasUnstarted = unstartedRequests.withLock { $0.remove(request) != nil }
+        guard !wasUnstarted else { return }
         stop(request, because: .cancelled)
     }
 
     private func runUnlessCancelled(_ invocation: MCPTool.Invocation, for request: String) -> Result {
-        let isStillQueued = queuedRequests.withLock { $0.remove(request) != nil }
-        guard isStillQueued else { return Result(status: 1, output: "", stop: .cancelled) }
+        let isUnstarted = unstartedRequests.withLock { $0.contains(request) }
+        guard isUnstarted else { return Result(status: 1, output: "", stop: .cancelled) }
         return runWaiting(invocation, for: request)
     }
 
@@ -77,12 +84,16 @@ final class MCPCommandRunner: Sendable {
         do {
             try process.run()
         } catch {
+            unstartedRequests.withLock { _ = $0.remove(request) }
             return Result(status: 1, output: "Could not run hangar: \(error.localizedDescription)")
         }
         try? pipe.fileHandleForWriting.close()
 
         let pid = process.processIdentifier
         children.withLock { $0[request] = pid }
+        // Only now can a cancel find the command to stop; one that came while it started is carried out here.
+        let wasCancelledWhileStarting = unstartedRequests.withLock { $0.remove(request) == nil }
+        if wasCancelledWhileStarting { stop(request, because: .cancelled) }
         if let seconds = invocation.timeoutSeconds {
             DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(seconds)) {
                 self.stop(request, because: .timedOut)
