@@ -27,7 +27,7 @@
 		010F32C7A90898287ED77210 /* HangarCLI.app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = 288AD5D350B37DACDC215FE8 /* HangarCLI.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2295D7CEC0A7A212B1233BDF /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 07C1AC0FB60667C9DA313561 /* AppIcon.icon */; };
 		358A6BAA9EFFF4970C12D2BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C93F0857642CFF15852E7E54 /* Assets.xcassets */; };
-		96D3349694E94C77ACB9E494 /* LICENSE.md in Resources */ = {isa = PBXBuildFile; fileRef = D333FC7C393C48079AAFE59F /* LICENSE.md */; };
+		96D3349694E94C77ACB9E494 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = D333FC7C393C48079AAFE59F /* LICENSE */; };
 		AB72131F64A5458296B6B9E5 /* THIRD-PARTY-LICENSES.md in Resources */ = {isa = PBXBuildFile; fileRef = 2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */; };
 		8D5EFF064BCA7676212F5CCE /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
 		93C909DE14F25875CD08037E /* HangarKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE4C8BA7390ABD53E8B61550 /* HangarKit.framework */; };
@@ -199,7 +199,7 @@
 
 /* Begin PBXFileReference section */
 		2B8B42F96C9E730CE6FF96AA /* libHangarSecrets.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHangarSecrets.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		D333FC7C393C48079AAFE59F /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		D333FC7C393C48079AAFE59F /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = THIRD-PARTY-LICENSES.md; sourceTree = "<group>"; };
 		F9377AEF16E6D08A5CBA2DF0 /* Guest */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Guest; sourceTree = "<group>"; };
 		07C1AC0FB60667C9DA313561 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
@@ -336,7 +336,7 @@
 				CFF42E42F46D01631EEF36D7 /* Sources/HangarPackets */,
 				D8901FE9B1CD17005FB57165 /* Sources/HangarSupport */,
 				7C15A01002EDFA266FAC3D87 /* Tests/HangarKitTests */,
-				D333FC7C393C48079AAFE59F /* LICENSE.md */,
+				D333FC7C393C48079AAFE59F /* LICENSE */,
 				2313F13430434B83B46236E1 /* THIRD-PARTY-LICENSES.md */,
 				3B6D4E977F74F9D651E03C8E /* Products */,
 			);
@@ -700,7 +700,7 @@
 				358A6BAA9EFFF4970C12D2BD /* Assets.xcassets in Resources */,
 				2295D7CEC0A7A212B1233BDF /* AppIcon.icon in Resources */,
 				40888E76A2AEBE482FEED42D /* Guest in Resources */,
-				96D3349694E94C77ACB9E494 /* LICENSE.md in Resources */,
+				96D3349694E94C77ACB9E494 /* LICENSE in Resources */,
 				AB72131F64A5458296B6B9E5 /* THIRD-PARTY-LICENSES.md in Resources */,
 			);
 		};

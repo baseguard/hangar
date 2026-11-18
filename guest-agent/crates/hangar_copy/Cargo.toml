@@ -6,7 +6,7 @@ categories = ["filesystem", "virtualization"]
 keywords = ["hangar", "copy", "tar"]
 
 edition.workspace = true
-license-file.workspace = true
+license.workspace = true
 publish.workspace = true
 repository.workspace = true
 rust-version.workspace = true

@@ -30,4 +30,3 @@ outside the guest. These pages cover the app and the `hangar` command line, whic
 
 - [Building the macOS images](macos-images.mdx): how the `vanilla`, `base` and `xcode` images are built and published.
 - [Building from source](building.mdx): the tools the build needs, and its make targets.
-- [License](license.mdx): who can use Hangar for free.
