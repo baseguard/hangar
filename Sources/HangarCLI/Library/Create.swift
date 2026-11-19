@@ -19,6 +19,8 @@ struct Create: ParsableCommand {
                   Debian from a cloud image file, with your own account.
               hangar create deb --os linux --iso ~/Downloads/debian-13.iso
                   Debian from its installer: install it with `hangar run deb`.
+              hangar create om --os linux --iso omarchy
+                  Omarchy from its checked ISO, with 4 processors, 8 GB and 40 GB: install it with `hangar run om`.
               hangar create win --os windows --iso ~/Downloads/Win11.iso
                   Windows 11, installed by itself in a few minutes.
               hangar create ci --os linux --image ghcr.io/acme/ci:1.0
@@ -94,7 +96,7 @@ struct Create: ParsableCommand {
 
         @Option(
             help: ArgumentHelp(
-                "Default on macOS: vanilla. macOS: vanilla, base or xcode. Linux: debian or ubuntu. Any VM: an image in a registry (by tag or @sha256 digest) or a .tar file.",
+                "Default on macOS: vanilla. macOS: vanilla, base or xcode. Linux: debian, ubuntu or fedora. Any VM: an image in a registry (by tag or @sha256 digest) or a .tar file.",
                 valueName: "name|registry/repo:tag|file.tar"))
         var image: String?
 
@@ -148,7 +150,9 @@ struct Create: ParsableCommand {
 
     struct InstallerOptions: ParsableArguments {
         @Option(
-            help: ArgumentHelp("An installer ISO. Windows: required, the Windows 11 Arm64 ISO.", valueName: "file|url"))
+            help: ArgumentHelp(
+                "An installer ISO. Linux: also omarchy, downloaded and checked. Windows: required, the Windows 11 Arm64 ISO.",
+                valueName: "file|url|omarchy"))
         var iso: String?
     }
 
@@ -178,6 +182,11 @@ struct Create: ParsableCommand {
 
         var exportedImage: String? {
             image.flatMap { $0.contains("/") || VMImage.isImageFile($0) ? $0 : nil }
+        }
+
+        /// A Linux installer Hangar knows by name, which also brings its own default size.
+        var namedInstaller: LinuxInstallerISO? {
+            os == .linux ? iso.flatMap(LinuxInstallerISO.init(rawValue:)) : nil
         }
     }
 
@@ -311,7 +320,8 @@ struct Create: ParsableCommand {
 
     private func checkImageOptions(_ plan: Plan) throws {
         if let image = plan.image, plan.exportedImage == nil, plan.os != .macOS {
-            let linuxImages = LinuxCloudImage.allCases.map(\.rawValue).joined(separator: " and ")
+            let names = LinuxCloudImage.allCases.map(\.rawValue)
+            let linuxImages = names.dropLast().joined(separator: ", ") + " and " + (names.last ?? "")
             let ownImages =
                 plan.os == .linux
                 ? "Hangar's own Linux images are \(linuxImages)." : "Hangar has no Windows images of its own."
@@ -341,6 +351,9 @@ struct Create: ParsableCommand {
         }
         if os != .linux, plan.diskImage != nil {
             throw ValidationError("--disk-image is for Linux guests.")
+        }
+        if os != .linux, let installer = plan.iso.flatMap(LinuxInstallerISO.init(rawValue:)) {
+            throw ValidationError("--iso \(installer.rawValue) installs \(installer.title), a Linux system.")
         }
     }
 
@@ -379,10 +392,14 @@ struct Create: ParsableCommand {
     }
 
     private func options(for plan: Plan) throws -> CreateOptions {
+        let installer = plan.namedInstaller
         let memoryBytes = try plan.memory.map { try parseGigabytes($0, name: "--memory") }
-        let diskSize = try plan.disk.map { try parseGigabytes($0, name: "--disk") } ?? plan.os.defaultDiskSize
+        let diskBytes = try plan.disk.map { try parseGigabytes($0, name: "--disk") }
         return CreateOptions(
-            cpuCount: plan.cpu, memorySize: memoryBytes, diskSize: diskSize, network: plan.network ?? .managed)
+            cpuCount: plan.cpu ?? installer?.defaultCPUCount,
+            memorySize: memoryBytes ?? installer?.defaultMemorySize,
+            diskSize: diskBytes ?? installer?.defaultDiskSize ?? plan.os.defaultDiskSize,
+            network: plan.network ?? .managed)
     }
 
     private static let windowsNeedsISO = "Windows needs --iso (a Windows 11 Arm64 ISO) or --image."

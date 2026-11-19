@@ -30,7 +30,7 @@ extension CreateVMView {
         var blurb: String {
             switch self {
             case .macOS: "Hangar's ready images of the latest macOS, or an install from Apple's latest IPSW."
-            case .linux: "Debian or Ubuntu ready in seconds, or any Arm64 ISO or cloud image."
+            case .linux: "Debian, Ubuntu or Fedora ready in seconds, or any Arm64 ISO or cloud image."
             case .windows: "Installs Windows 11 on Arm unattended from Microsoft's ISO."
             case .registry: "Your team's image from a container registry or a file."
             }
@@ -45,7 +45,7 @@ extension CreateVMView {
         var quickChoices: [Choice] {
             switch self {
             case .macOS: [.macOSHomebrew, .macOSXcode]
-            case .linux: [.debian, .ubuntu]
+            case .linux: [.debian, .ubuntu, .fedora]
             case .windows, .registry: []
             }
         }

@@ -16,7 +16,8 @@ package struct VMTemplate: Codable, Hashable, Sendable {
         package var cloudImage: LinuxCloudImage?
         /// A Linux disk: a file or an https URL.
         package var diskImage: String?
-        /// An installer ISO for Linux or Windows: a file or an https URL.
+        /// An installer ISO for Linux or Windows: a file, an https URL, or a Linux installer Hangar knows by name
+        /// (`LinuxInstallerISO`, like omarchy).
         package var iso: String?
         /// A macOS restore image: a file, an https URL or latest.
         package var ipsw: String?
@@ -143,6 +144,9 @@ extension VMTemplate.Origin {
         }
         if iso != nil, os == .macOS { throw HangarError("A macOS VM is made from an ipsw or an image, not an iso.") }
         if ipsw != nil, os != .macOS { throw HangarError("Only a macOS VM is made from an ipsw.") }
+        if let installer = iso.flatMap(LinuxInstallerISO.init(rawValue:)), os != .linux {
+            throw HangarError("\(installer.title) installs Linux VMs.")
+        }
     }
 
     /// The file this Mac must have to make the VM, if it is made from one rather than a URL, a name or a registry.
@@ -153,7 +157,8 @@ extension VMTemplate.Origin {
     }
 
     private static func isLocalFile(_ location: String) -> Bool {
-        location != "latest" && !location.lowercased().hasPrefix("https://")
+        let isNamed = location == "latest" || LinuxInstallerISO(rawValue: location) != nil
+        return !isNamed && !location.lowercased().hasPrefix("https://")
     }
 }
 

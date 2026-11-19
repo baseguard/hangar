@@ -58,6 +58,7 @@ struct CreateForm: View {
         .onChange(of: choice) { old, new in
             location = .file
             if name.isEmpty || name == store.uniqueName(old.baseName) { name = store.uniqueName(new.baseName) }
+            if resources == old.defaultResources { resources = new.defaultResources }
         }
         .fileImporter(isPresented: $choosingFile, allowedContentTypes: allowedTypes) { result in
             if case .success(let picked) = result { path = picked.path }
@@ -65,7 +66,7 @@ struct CreateForm: View {
     }
 
     private var usesCloudInit: Bool {
-        choice == .debian || choice == .ubuntu || choice == .cloudImage
+        choice == .debian || choice == .ubuntu || choice == .fedora || choice == .cloudImage
     }
 
     private var cloudInitUserData: String? {
@@ -95,7 +96,7 @@ struct CreateForm: View {
                 try macAccount?.validate()
             case .ipsw:
                 try macAccount?.validate()
-            case .debian, .ubuntu, .cloudImage:
+            case .debian, .ubuntu, .fedora, .cloudImage:
                 if choice == .cloudImage, !isWebAddress(url) { return "Enter an https:// address." }
                 try cloudInitAccount?.validate()
                 try cloudInitUserData.map(CloudInit.validate(userData:))
@@ -108,7 +109,7 @@ struct CreateForm: View {
                     return "Choose the Windows ISO (https for a URL)."
                 }
                 try account.windows.validate(forVM: trimmedName)
-            case .macOSHomebrew, .macOSXcode, .registry:
+            case .macOSHomebrew, .macOSXcode, .omarchy, .registry:
                 break
             }
         } catch {
@@ -122,11 +123,14 @@ struct CreateForm: View {
     }
 
     private func applyDefaults() {
-        let os = choice.kind.os ?? .linux
-        cpus = os.defaultCPUCount
-        memoryGB = Int(os.defaultMemorySize / ByteSize.gib)
-        diskGB = Int(os.defaultDiskSize / ByteSize.gib)
+        resources = choice.defaultResources
         if name.isEmpty { name = store.uniqueName(choice.baseName) }
+    }
+
+    /// Sizes the user changed are kept when another choice is picked.
+    private var resources: (cpus: Int, memoryGB: Int, diskGB: Int) {
+        get { (cpus, memoryGB, diskGB) }
+        nonmutating set { (cpus, memoryGB, diskGB) = newValue }
     }
 
     private func create() {
@@ -144,10 +148,12 @@ struct CreateForm: View {
             return choice.macImage.map { .macImage($0, account: choice == .macOS ? macAccount : nil) }
         case .ipsw:
             return .macOS(ipsw: "latest", account: macAccount)
-        case .debian, .ubuntu:
+        case .debian, .ubuntu, .fedora:
             return choice.linuxImage.map {
                 .linuxCloudImage($0, account: cloudInitAccount, userData: cloudInitUserData)
             }
+        case .omarchy:
+            return choice.linuxInstaller.map { .linuxInstaller($0) }
         case .linuxISO:
             return .linux(iso: location == .later ? nil : file, diskImage: nil, account: nil, userData: nil)
         case .cloudImage:
@@ -176,8 +182,10 @@ private struct SourceSection: View {
                 title: "Image", value: "hangar-macos:\(choice.macImage ?? "")", summary: choice.summary)
         case .ipsw:
             SourceSummarySection(title: "Source", value: "Apple", summary: choice.summary)
-        case .debian, .ubuntu:
+        case .debian, .ubuntu, .fedora:
             SourceSummarySection(title: "Source", value: choice.linuxImage?.source ?? "", summary: choice.summary)
+        case .omarchy:
+            SourceSummarySection(title: "Source", value: choice.linuxInstaller?.source ?? "", summary: choice.summary)
         case .linuxISO:
             LinuxISOSourceSection(location: $location, url: $url, path: path, chooseFile: chooseFile)
         case .cloudImage:
@@ -205,7 +213,7 @@ private struct AccountSection: View {
                 footer:
                     "The image comes with this administrator, and SSH is on. Anyone who can reach the VM can sign in with this password, so change it in the VM."
             )
-        case .debian, .ubuntu, .cloudImage:
+        case .debian, .ubuntu, .fedora, .cloudImage:
             NewAccountSection(
                 createAccount: $account.createAccount, username: $account.username, password: $account.password,
                 footer:
@@ -214,7 +222,7 @@ private struct AccountSection: View {
         case .windows:
             WindowsAccountSection(
                 username: $account.username, password: $account.password, remoteDesktop: $account.remoteDesktop)
-        case .linuxISO, .registry:
+        case .omarchy, .linuxISO, .registry:
             EmptyView()
         }
     }

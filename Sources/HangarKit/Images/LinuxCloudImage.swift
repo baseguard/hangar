@@ -5,6 +5,7 @@ import HangarSupport
 package enum LinuxCloudImage: String, Codable, CaseIterable, Identifiable, Sendable {
     case debian
     case ubuntu
+    case fedora
 
     package var id: String { rawValue }
 
@@ -12,18 +13,26 @@ package enum LinuxCloudImage: String, Codable, CaseIterable, Identifiable, Senda
         switch self {
         case .debian: "Debian 13"
         case .ubuntu: "Ubuntu 26.04 LTS"
+        case .fedora: "Fedora 45"
         }
     }
 
     package var source: String { cloudImage.archive.host ?? "" }
 
-    var cloudImage: (archive: URL, checksums: URL) {
+    /// Where the image's digest comes from: the list its publisher keeps next to an image that follows the latest
+    /// release, or the digest Hangar knows for an image named by its release, so no mirror's list is trusted.
+    enum Checksum {
+        case listedIn(URL)
+        case known(String)
+    }
+
+    var cloudImage: (archive: URL, checksum: Checksum) {
         switch self {
         case .debian:
             (
                 URL(
                     constant: "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-arm64.qcow2"),
-                URL(constant: "https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS")
+                .listedIn(URL(constant: "https://cloud.debian.org/images/cloud/trixie/latest/SHA512SUMS"))
             )
         case .ubuntu:
             (
@@ -31,16 +40,24 @@ package enum LinuxCloudImage: String, Codable, CaseIterable, Identifiable, Senda
                     constant:
                         "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-arm64.img"
                 ),
-                URL(constant: "https://cloud-images.ubuntu.com/releases/resolute/release/SHA256SUMS")
+                .listedIn(URL(constant: "https://cloud-images.ubuntu.com/releases/resolute/release/SHA256SUMS"))
+            )
+        // Fedora names its images by release and compose, and sends each download to another mirror.
+        case .fedora:
+            (
+                URL(
+                    constant:
+                        "https://download.fedoraproject.org/pub/fedora/linux/releases/45/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-45-1.4.aarch64.qcow2"
+                ),
+                .known("1632acc8bc14d45b6c9596a0acc71b070d3748d1abdcf1a519be5c983bb0286c")
             )
         }
     }
 
     @concurrent
     package func disk(progress: @escaping ProgressHandler) async throws -> URL {
-        let (archive, checksums) = cloudImage
-        progress(CreationProgress(phase: "Looking up the latest \(title) image"))
-        let digest = try await Downloader.checksum(of: archive.lastPathComponent, listedIn: checksums)
+        let (archive, checksum) = cloudImage
+        let digest = try await digest(of: archive, from: checksum, progress: progress)
         let stem = "\(rawValue)-\(digest.prefix(16))"
         let disk = HangarPaths.isoCache.appendingPathComponent("\(stem).raw")
         if FileManager.default.fileExists(atPath: disk.path) { return markedUsed(disk) }
@@ -71,6 +88,16 @@ package enum LinuxCloudImage: String, Codable, CaseIterable, Identifiable, Senda
         removeOlderImages(keeping: stem)
 
         return disk
+    }
+
+    private func digest(of archive: URL, from checksum: Checksum, progress: ProgressHandler) async throws -> String {
+        switch checksum {
+        case .listedIn(let list):
+            progress(CreationProgress(phase: "Looking up the checksum of \(title)"))
+            return try await Downloader.checksum(of: archive.lastPathComponent, listedIn: list)
+        case .known(let digest):
+            return digest
+        }
     }
 
     // VMs clone the disk, which leaves its date alone, so without this prune would take a disk in daily use.

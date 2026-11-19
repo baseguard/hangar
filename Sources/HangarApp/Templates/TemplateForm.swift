@@ -180,6 +180,7 @@ private struct TemplateOriginSection: View {
     private var madeFrom: String {
         guard let from = template.from else { return "Not given" }
         if let cloudImage = from.cloudImage { return cloudImage.title }
+        if let installer = from.iso.flatMap(LinuxInstallerISO.init(rawValue:)) { return installer.title }
         return from.image ?? from.diskImage ?? from.iso ?? from.ipsw ?? "Not given"
     }
 

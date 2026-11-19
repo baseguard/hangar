@@ -7,6 +7,8 @@ package enum VMSource: Sendable {
     /// An installer ISO, a raw disk image, or neither for an empty VM.
     case linux(iso: String?, diskImage: String?, account: CloudInitAccount?, userData: String?)
     case linuxCloudImage(LinuxCloudImage, account: CloudInitAccount?, userData: String?)
+    /// An installer Hangar knows by name, like Omarchy, installed from the VM's window.
+    case linuxInstaller(LinuxInstallerISO)
     case macOS(ipsw: String, account: MacProvisioning?)
     case macImage(String, account: MacProvisioning?)
     case windows(iso: String, account: WindowsInstaller.Account)
@@ -19,7 +21,7 @@ package enum VMSource: Sendable {
 
     package var os: GuestOS {
         switch self {
-        case .linux, .linuxCloudImage: .linux
+        case .linux, .linuxCloudImage, .linuxInstaller: .linux
         case .macOS, .macImage: .macOS
         case .windows: .windows
         case .registryImage(_, let os, _, _, _, _), .imageFile(_, let os, _, _, _): os
@@ -32,6 +34,7 @@ package enum VMSource: Sendable {
         case .linux(let iso, let diskImage, _, _):
             VMTemplate.Origin(diskImage: diskImage.map(Self.fullPath), iso: iso.map(Self.fullPath))
         case .linuxCloudImage(let image, _, _): VMTemplate.Origin(cloudImage: image)
+        case .linuxInstaller(let installer): VMTemplate.Origin(iso: installer.rawValue)
         case .macOS(let ipsw, _): VMTemplate.Origin(ipsw: Self.fullPath(ipsw))
         case .macImage(let image, _): VMTemplate.Origin(image: image)
         case .windows(let iso, _): VMTemplate.Origin(iso: Self.fullPath(iso))
@@ -45,7 +48,7 @@ package enum VMSource: Sendable {
         case .linux(_, _, _, let userData), .linuxCloudImage(_, _, let userData),
             .registryImage(_, _, _, _, let userData, _), .imageFile(_, _, _, _, let userData):
             userData
-        case .macOS, .macImage, .windows: nil
+        case .linuxInstaller, .macOS, .macImage, .windows: nil
         }
     }
 
@@ -85,6 +88,9 @@ package enum VMSource: Sendable {
             return try await LinuxInstaller.createVM(
                 name: name, iso: nil, diskImage: disk, account: account, userData: userData,
                 options: options, progress: progress)
+        case .linuxInstaller(let installer):
+            let iso = try await installer.download(progress: progress)
+            return try await LinuxInstaller.createVM(name: name, iso: iso, options: options, progress: progress)
         case .macOS(let ipsw, let account):
             return try await MacInstaller.createVM(
                 name: name, source: ipsw, options: options, provisioning: account, progress: progress)

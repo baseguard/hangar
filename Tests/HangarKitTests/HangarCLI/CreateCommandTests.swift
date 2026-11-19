@@ -33,9 +33,10 @@ struct CreateCommandTests {
         (["--os", "linux", "--cpu", "4096"], "--cpu must be between 1 and"),
         (["--os", "linux", "--allow-write-shares"], "--allow-write-shares goes with --template."),
         (
-            ["--os", "linux", "--image", "fedora"],
-            "--image fedora isn't an image in a registry or a .tar file; Hangar's own Linux images are debian and ubuntu."
+            ["--os", "linux", "--image", "arch"],
+            "--image arch isn't an image in a registry or a .tar file; Hangar's own Linux images are debian, ubuntu and fedora."
         ),
+        (["--os", "windows", "--iso", "omarchy"], "--iso omarchy installs Omarchy 4.5, a Linux system."),
     ])
     func eachMistakeGetsItsOwnMessageAndCreatesNothing(options: [String], message: String) throws {
         let result = try HangarCommand.run(["create", "box"] + options)

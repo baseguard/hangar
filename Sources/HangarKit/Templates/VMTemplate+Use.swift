@@ -26,6 +26,9 @@ extension VMTemplate {
         case .macOS:
             return .macImage("vanilla", account: macAccount)
         case .linux:
+            if let installer = origin.iso.flatMap(LinuxInstallerISO.init(rawValue:)) {
+                return .linuxInstaller(installer)
+            }
             return .linux(iso: origin.iso, diskImage: nil, account: nil, userData: nil)
         case .windows:
             guard let iso = origin.iso else { throw HangarError("Windows needs an installer ISO or an image.") }

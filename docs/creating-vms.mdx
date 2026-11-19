@@ -16,9 +16,10 @@ Pick a guest, pick where it installs from, and Hangar does the rest.
 | macOS with my own account | `hangar create mac --os macos --user dev` |
 | macOS with Homebrew (or Xcode) ready | `hangar create mac --os macos --image base` (or `--image xcode`) |
 | macOS from an IPSW | `hangar create mac --os macos --ipsw ~/Downloads/UniversalMac_Restore.ipsw --user dev` |
-| Debian or Ubuntu, ready in seconds | `hangar create deb --os linux --image debian` (or `--image ubuntu`; user `admin`, password `admin`) |
+| Debian, Ubuntu or Fedora, ready in seconds | `hangar create deb --os linux --image debian` (or `--image ubuntu`, `--image fedora`; user `admin`, password `admin`) |
 | Linux from a cloud image | `hangar create deb --os linux --user dev --disk-image https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-arm64.qcow2` |
 | Linux from an installer ISO | `hangar create deb --os linux --iso ~/Downloads/debian-13-arm64-netinst.iso`, then `hangar run deb` |
+| Omarchy | `hangar create om --os linux --iso omarchy`, then `hangar run om` and install it in the window |
 | Windows 11 | `hangar create win --os windows --iso ~/Downloads/Win11_arm64.iso --user admin` |
 | A copy of a VM | `hangar clone deb deb2` |
 | A VM from your team's image | `hangar create ci --os linux --image ghcr.io/acme/ci:1.0` |
@@ -53,7 +54,7 @@ key. Hangar's `base` and `xcode` images come with their own account, so `--user`
 A macOS account logs in automatically and has Remote Login (SSH) on; `--no-auto-login` and `--no-ssh` leave either
 off.
 
-Cloud images can be raw or qcow2, like Debian's and Ubuntu's.
+Cloud images can be raw or qcow2, like Debian's, Ubuntu's and Fedora's.
 
 ## Hangar's macOS images
 
@@ -71,12 +72,20 @@ Each image builds on the one before, and parts a VM already has from another ima
 of downloaded. They live at `ghcr.io/baseguard/hangar-macos:vanilla`, `:base` and `:xcode`. Hangar pins the tag to a
 digest once, checks every byte against the digests in that manifest, and never attaches a downloaded disk on your Mac.
 
-## Hangar's Debian and Ubuntu
+## Hangar's Debian, Ubuntu and Fedora
 
-**New Virtual Machine › Linux**, or `hangar create <vm> --os linux --image debian` (or `ubuntu`), downloads the
-latest Debian 13 or Ubuntu 26.04 LTS cloud image once from its publisher and checks it against the checksum list
-published next to it (integrity, not authenticity). The VM gets Hangar's agent and the administrator `admin` with
-the password `admin`.
+**New Virtual Machine › Linux**, or `hangar create <vm> --os linux --image debian` (or `ubuntu`, `fedora`),
+downloads the latest Debian 13 or Ubuntu 26.04 LTS cloud image once from its publisher and checks it against the
+checksum list published next to it (integrity, not authenticity); the Fedora 45 image comes from Fedora's mirrors and
+is checked against the checksum Hangar knows for it. The VM gets Hangar's agent and the administrator `admin` with the
+password `admin`.
+
+## Omarchy
+
+**New Virtual Machine › Linux › Advanced › Omarchy 4.5**, or `hangar create <vm> --os linux --iso omarchy`,
+downloads Omarchy's Arm installer ISO (6 GB) once from iso.omarchy.org and checks it against the checksum Hangar
+knows for it. The VM starts with 4 processors, 8 GB of memory and a 40 GB disk unless you give others. Start it, answer
+Omarchy's questions in its window, and detach the ISO when it has installed (`hangar set <vm> --no-iso`).
 
 ## Your own cloud-init
 

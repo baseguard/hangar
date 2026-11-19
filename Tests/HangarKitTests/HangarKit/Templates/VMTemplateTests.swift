@@ -190,5 +190,25 @@ struct VMTemplateTests {
         #expect(VMTemplate.Origin(image: "ghcr.io/acme/ci:1").localFile == nil)
         #expect(VMTemplate.Origin(image: "/Users/someone/ci.tar").localFile == "/Users/someone/ci.tar")
         #expect(VMTemplate.Origin(cloudImage: .debian).localFile == nil)
+        #expect(VMTemplate.Origin(iso: "omarchy").localFile == nil)
+    }
+
+    @Test func aTemplateSavedFromAnOmarchyVMInstallsOmarchyAgain() throws {
+        var config = VMConfig(
+            os: .linux, cpuCount: 4, memorySize: 8 << 30, display: .linuxDefault,
+            network: NetworkSettings(mode: .managed, macAddress: VMConfig.randomMACAddress()))
+        config.origin = VMSource.linuxInstaller(.omarchy).origin
+        let template = try VMTemplate.decode(VMTemplate(savedFrom: config, diskSize: 40 << 30).encoded())
+
+        let source = try template.source(
+            from: try #require(template.from), linuxAccount: nil, macAccount: nil, windowsAccount: nil)
+
+        guard case .linuxInstaller(.omarchy) = source else {
+            Issue.record("\(source)")
+            return
+        }
+        #expect(throws: HangarError.self) {
+            try VMTemplate.decode(Data(#"{"os": "windows", "from": {"iso": "omarchy"}}"#.utf8))
+        }
     }
 }

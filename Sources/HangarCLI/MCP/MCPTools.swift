@@ -50,7 +50,7 @@ enum MCPTools {
         name: "create_vm",
         description: """
             Create a VM. Hangar's images are ready in seconds to minutes and sign in as admin, password admin: \
-            Linux debian or ubuntu, macOS base (Homebrew) or xcode (Homebrew and Xcode). An image can also be one \
+            Linux debian, ubuntu or fedora, macOS base (Homebrew) or xcode (Homebrew and Xcode). An image can also be one \
             from a registry (registry/repo:tag) or a .tar file, and a template a .hangarvm file. Windows and \
             installer ISOs need the Hangar app.
             """,
@@ -58,7 +58,8 @@ enum MCPTools {
         properties: [
             "name": MCPSchema.string("The new VM's name: letters, digits, '-' and '_'."),
             "os": MCPSchema.oneOf(["linux", "macos"], "The system; not needed with a template."),
-            "image": MCPSchema.string("debian, ubuntu, base, xcode, vanilla, registry/repo:tag or a .tar file."),
+            "image": MCPSchema.string(
+                "debian, ubuntu, fedora, base, xcode, vanilla, registry/repo:tag or a .tar file."),
             "template": MCPSchema.string("A .hangarvm file on this Mac; the other arguments override it."),
             "cpu": MCPSchema.integer("Processors."),
             "memory": MCPSchema.integer("Memory in GB."),
