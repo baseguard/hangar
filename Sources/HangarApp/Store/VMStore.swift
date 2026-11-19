@@ -697,7 +697,9 @@ final class VMStore {
 
     func growDisk(_ name: String, to bytes: UInt64) {
         whileBusy(name, doing: "grow the disk of \(name)") { bundle in
-            try await runInBackground { try VMLibrary.withStoppedVM(bundle) { try bundle.resizeDisk(to: bytes) } }
+            try await runInBackground {
+                try VMLibrary.withStoppedVM(bundle) { try bundle.resizeDisk(to: bytes, os: bundle.loadConfig().os) }
+            }
         }
     }
 

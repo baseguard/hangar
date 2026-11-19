@@ -87,12 +87,12 @@ struct LibraryTests {
     @Test func growingADiskNeedsTheDiskToExist() async throws {
         let bundle = try await makeVM("disk")
 
-        try bundle.resizeDisk(to: 2 << 20)
+        try bundle.resizeDisk(to: 2 << 20, os: .linux)
         #expect(bundle.diskSize == 2 << 20)
-        #expect(throws: (any Error).self) { try bundle.resizeDisk(to: 1 << 20) }
+        #expect(throws: (any Error).self) { try bundle.resizeDisk(to: 1 << 20, os: .linux) }
 
         try FileManager.default.removeItem(at: bundle.diskURL)
-        #expect(throws: (any Error).self) { try bundle.resizeDisk(to: 4 << 20) }
+        #expect(throws: (any Error).self) { try bundle.resizeDisk(to: 4 << 20, os: .linux) }
         #expect(!FileManager.default.fileExists(atPath: bundle.diskURL.path))
     }
 

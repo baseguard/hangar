@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import HangarDisks
 import HangarSupport
 
 package struct VMBundle: Hashable, Identifiable, Sendable {
@@ -88,7 +89,17 @@ package struct VMBundle: Hashable, Identifiable, Sendable {
         HangarError("Disks can only grow (current size \(ByteSize.format(size))).")
     }
 
-    package func resizeDisk(to bytes: UInt64) throws {
+    /// The VM's system decides, never the disk's contents: a macOS disk also has RecoveryOS moved to the new end, so
+    /// Hangar's agent in macOS can grow the system's container into the space; other guests grow their own partition
+    /// when they start, as cloud-init does.
+    package func resizeDisk(to bytes: UInt64, os: GuestOS) throws {
+        guard os == .macOS, bytes > diskSize, MacDiskGrowth.isMacDisk(diskURL) else {
+            return try growDiskFile(to: bytes)
+        }
+        try MacDiskGrowth.grow(diskURL, to: bytes)
+    }
+
+    private func growDiskFile(to bytes: UInt64) throws {
         let fd = open(diskURL.path, O_RDWR)
         guard fd >= 0 else { throw HangarError(errno: errno, "Could not open \(diskURL.path)") }
         defer { close(fd) }

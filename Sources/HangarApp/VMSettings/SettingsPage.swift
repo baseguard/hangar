@@ -200,7 +200,7 @@ private struct GrowDiskPopover: View {
             Stepper(value: $diskGB, in: currentDiskGB...max(currentDiskGB, Self.largestDiskGB), step: Self.stepGB) {
                 Text("\(diskGB) GB").monospacedDigit()
             }
-            Text("Disks can only grow. Grow the partition inside the guest afterwards.")
+            Text(explanation)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -218,6 +218,13 @@ private struct GrowDiskPopover: View {
         .padding()
         .frame(width: SettingsPage.popoverWidth)
         .onAppear { diskGB = currentDiskGB + Self.suggestedGrowthGB }
+    }
+
+    /// Hangar's agent grows a macOS guest's container; other guests grow their own partition.
+    private var explanation: String {
+        vm.config.os == .macOS
+            ? "Disks can only grow. Hangar's agent in macOS takes the new space when the VM next starts."
+            : "Disks can only grow. Grow the partition inside the guest afterwards."
     }
 
     private var currentDiskGB: Int {

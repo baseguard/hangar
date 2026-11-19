@@ -1,7 +1,7 @@
 import Foundation
 
 package enum GuestSetup {
-    package static let agentVersion = 34
+    package static let agentVersion = 35
     /// The first agent that takes `hangar exec` commands.
     package static let firstExecAgentVersion = 17
     /// The first agent with the `cp-in` and `cp-out` commands behind `hangar cp`.

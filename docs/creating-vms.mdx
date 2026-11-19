@@ -27,6 +27,15 @@ Pick a guest, pick where it installs from, and Hangar does the rest.
 You're asked for a password, or give it on standard input with `--password-stdin`. Set the size with `--cpu`,
 `--memory` and `--disk` (GB). Disks only use the space they need.
 
+A disk can grow later, with the VM shut down: **Grow…** next to its disk in the VM's Settings, or
+`hangar set <vm> --disk 120`. In a macOS VM, Hangar moves the Recovery partition to the new end of the disk and puts
+the disk back as it was if that fails; Hangar's agent in macOS then grows the system's container into the space when
+the VM next starts. Hangar only writes the disk's partition table: it never attaches the disk on your Mac. Without the
+agent, run `sudo diskutil apfs resizeContainer "$(diskutil info / | awk '/APFS Container:/ {print $3}')" 0` in the VM.
+The agent grows the container whenever 1 GB or more lies free right after it, so space you free behind the container
+in the VM yourself is taken back at the next start unless a partition of yours fills it.
+Linux cloud images grow their partition when they start; in other guests, grow it yourself.
+
 ## Guests and defaults
 
 | Guest | Installs from | CPU | Memory | Disk |
@@ -60,7 +69,7 @@ screen. Change the password in the VM's System Settings.
 
 Each image builds on the one before, and parts a VM already has from another image are copied from your Mac instead
 of downloaded. They live at `ghcr.io/baseguard/hangar-macos:vanilla`, `:base` and `:xcode`. Hangar pins the tag to a
-digest once, checks every byte against the digests in that manifest, and never opens a downloaded disk on your Mac.
+digest once, checks every byte against the digests in that manifest, and never attaches a downloaded disk on your Mac.
 
 ## Hangar's Debian and Ubuntu
 

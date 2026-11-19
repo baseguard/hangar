@@ -6,6 +6,7 @@
 
 pub mod agent;
 mod clipboard;
+mod grow_disk;
 pub mod install;
 pub mod report;
 mod trust;

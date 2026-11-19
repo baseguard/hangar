@@ -26,7 +26,7 @@ package enum LinuxInstaller {
                     try VMLibrary.cloneFile(from: diskImage, to: staging.diskURL)
                 }
                 if staging.diskSize < options.diskSize {
-                    try staging.resizeDisk(to: options.diskSize)
+                    try staging.resizeDisk(to: options.diskSize, os: .linux)
                 }
             } else {
                 try SparseFile.create(at: staging.diskURL, size: options.diskSize)

@@ -1,4 +1,5 @@
 import Foundation
+import HangarDisks
 import HangarSupport
 import Virtualization
 
@@ -70,6 +71,11 @@ struct ConfigurationBuilder {
     private func storageDevices() throws -> [VZStorageDeviceConfiguration] {
         guard FileManager.default.fileExists(atPath: bundle.diskURL.path) else {
             throw HangarError("'\(bundle.name)' can't start: its disk \(bundle.diskURL.path) is missing.")
+        }
+        do {
+            try MacDiskGrowth.checkNoUnfinishedGrowth(of: bundle.diskURL)
+        } catch {
+            throw HangarError("'\(bundle.name)' can't start: \(error.localizedDescription)")
         }
 
         // Automatic caching has zeroed Linux guests' file pages and crashed their kernels; cached avoids it.

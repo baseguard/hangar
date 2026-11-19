@@ -341,7 +341,7 @@ package enum VMImage {
                 try VMLibrary.cloneFile(from: cached.disk, to: staging.diskURL)
                 try VMLibrary.cloneFile(from: cached.nvram, to: staging.nvramURL)
                 if options.diskSize > image.diskSize {
-                    try staging.resizeDisk(to: options.diskSize)
+                    try staging.resizeDisk(to: options.diskSize, os: image.os)
                 }
 
                 var config = try vmConfig(image, options: options)

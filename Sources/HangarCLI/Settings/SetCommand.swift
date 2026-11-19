@@ -138,12 +138,19 @@ struct SetCommand: ParsableCommand {
         if let diskBytes { try Self.checkDiskCanGrow(bundle, to: diskBytes) }
 
         try VMSettings.change(bundle) { config in try applyRequested(to: &config, isoPath: isoPath) }
+        let os = try bundle.loadConfig().os
         if let diskBytes {
-            try VMLibrary.withStoppedVM(bundle) { try bundle.resizeDisk(to: diskBytes) }
+            try VMLibrary.withStoppedVM(bundle) { try bundle.resizeDisk(to: diskBytes, os: os) }
         }
 
         print("Updated '\(name)'.")
+        if diskBytes != nil, os == .macOS { print(Self.macOSDiskNote) }
     }
+
+    private static let macOSDiskNote = """
+        Hangar's agent in macOS takes the new space when the VM next starts. Without the agent, run this in the VM:
+          sudo diskutil apfs resizeContainer "$(diskutil info / | awk '/APFS Container:/ {print $3}')" 0
+        """
 
     /// Checked before the settings are saved, so a refused disk size leaves the VM as it was.
     private static func checkDiskCanGrow(_ bundle: VMBundle, to bytes: UInt64) throws {

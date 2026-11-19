@@ -1,5 +1,8 @@
-//! `report`: the system part, which launchd runs as root. It reports the guest's memory, obeys
-//! the host's commands and runs `hangar exec`'s, also at the login window when nobody is signed in.
+//! `report`: the system part, which launchd runs as root.
+//!
+//! It reports the guest's memory, obeys the host's commands and runs `hangar exec`'s, also at the
+//! login window when nobody is signed in, and grows the system's container into space Hangar added
+//! to the disk.
 
 use std::{
     fs::{File, OpenOptions},
@@ -44,6 +47,11 @@ pub fn run() -> hangar_error::Result<()> {
         .name("exec".into())
         .spawn(follow_exec);
     hangar_error::note_failure("hangar exec can't run commands in this guest", started);
+
+    let started = thread::Builder::new()
+        .name("grow disk".into())
+        .spawn(super::grow_disk::grow_system_container);
+    hangar_error::note_failure("the system's container keeps its size", started);
 
     report::send(
         || open_port(REPORT_PORT, Direction::ToHost),
