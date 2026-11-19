@@ -12,8 +12,8 @@ ssh admin@$(hangar ip kestrel --wait 60)
 # it reaches anthropic.com and github.com. that's all ☕
 ```
 
-Needs macOS 27 or later on Apple silicon. [Download](https://hangar.baseguard.io/download) ·
-[Getting started](https://hangar.baseguard.io/docs/getting-started) · [Docs](https://hangar.baseguard.io/docs)
+Needs macOS 27 or later on Apple silicon. [Download](https://hangar.bot/download) ·
+[Getting started](https://hangar.bot/docs/getting-started) · [Docs](https://hangar.bot/docs)
 
 ## Credits
 
