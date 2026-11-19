@@ -34,6 +34,7 @@ struct Sidebar: View {
             }
         }
         .listStyle(.sidebar)
+        .safeAreaInset(edge: .bottom) { UpdateBanner() }
         .contextMenu(forSelectionType: SidebarItem.self) { _ in
         } primaryAction: { items in
             guard items.count == 1, case .vm(let name) = items.first else { return }

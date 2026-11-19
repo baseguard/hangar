@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         Task { await runInBackground { VMLibrary.removeAbandonedStaging() } }
+        AppUpdater.shared.start()
         // Here rather than in the background, so it can't race the first drag out of a Files window.
         DragExports.removeAll()
         VMStore.shared.startAutoStartVMs()
@@ -44,6 +45,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return event.eventID == AEEventID(kAEOpenApplication)
             && event.paramDescriptor(forKeyword: AEKeyword(keyAEPropData))?.enumCodeValue
                 == OSType(keyAELaunchedAsLogInItem)
+    }
+
+    /// Only once the VMs in Hangar have shut down and nothing can cancel the quit any more.
+    func applicationWillTerminate(_ notification: Notification) {
+        AppUpdater.shared.installOnQuit()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

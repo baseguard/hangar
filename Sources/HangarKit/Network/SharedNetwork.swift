@@ -104,6 +104,15 @@ package enum SharedNetwork {
         return ProcessUtil.wait(timeout: daemonStopTimeout) { !isDaemonRunning }
     }
 
+    /// After Hangar is updated, so the next VM starts the new version's daemon. One that VMs still use keeps running,
+    /// and holding the users' lock meanwhile keeps a VM from joining while it stops.
+    package static func stopDaemonIfUnused() {
+        let usersLock = FileLock(url: usersLockURL)
+        guard (try? usersLock.tryLock(.exclusive)) == true else { return }
+        defer { usersLock.unlock() }
+        stopDaemon()
+    }
+
     static func readLeases() throws -> [String: DHCPServer.Lease] {
         guard FileManager.default.fileExists(atPath: DHCPService.leasesURL.path) else { return [:] }
         return try JSON.read([String: DHCPServer.Lease].self, from: DHCPService.leasesURL)

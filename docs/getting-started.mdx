@@ -24,6 +24,15 @@ To link the command line by hand instead:
 sudo ln -sf /Applications/Hangar.app/Contents/Helpers/HangarCLI.app/Contents/MacOS/hangar /usr/local/bin/hangar
 ```
 
+## Updates
+
+Hangar looks for a newer release on GitHub (api.github.com) about 20 seconds after it opens and every 12 hours, and
+shows a dot on its menu bar icon and a button at the foot of the sidebar when one is out. It downloads the update only
+when you ask, installs it only if Baseguard signed it and Apple notarized it, and puts it in place when Hangar quits or
+relaunches. Turn the checks off in **Settings › General › Updates**, or check by hand with **Hangar › Check for
+Updates…**. VMs started in the background or from the command line keep running the old version until you start them
+again.
+
 ## In the app
 
 1. On the welcome screen, or after <kbd>⌘N</kbd>, click **macOS** or **Linux**. The **Quick Start** tab opens with

@@ -80,13 +80,15 @@ package struct DiskImage {
         }
     }
 
-    /// ISOs are attached as they are; anything else is a raw disk, which hdiutil won't guess.
+    /// ISOs and disk images (.dmg) are attached as they are; anything else is a raw disk, which hdiutil won't guess.
     private static func attachArguments(for url: URL, readOnly: Bool, mount: Bool, mountRoot: URL?) -> [String] {
         var arguments = ["attach", "-plist", "-nobrowse", "-noverify", "-noautofsck"]
         if readOnly { arguments.append("-readonly") }
         if !mount { arguments.append("-nomount") }
         if let mountRoot { arguments += ["-mountroot", mountRoot.path] }
-        if url.pathExtension.lowercased() != "iso" { arguments += ["-imagekey", "diskimage-class=CRawDiskImage"] }
+        if !["iso", "dmg"].contains(url.pathExtension.lowercased()) {
+            arguments += ["-imagekey", "diskimage-class=CRawDiskImage"]
+        }
         return arguments + [url.path]
     }
 

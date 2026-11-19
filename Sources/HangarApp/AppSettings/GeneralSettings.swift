@@ -20,6 +20,7 @@ struct GeneralSettings: View {
             } footer: {
                 Text("Hangar always stays in the menu bar or the Dock, so one of them remains on.")
             }
+            UpdatesSection()
             VMLibrarySection()
             if let message {
                 Text(message).foregroundStyle(.secondary)

@@ -17,6 +17,7 @@ enum Main {
 struct HangarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var store = VMStore.shared
+    @State private var updater = AppUpdater.shared
     @AppStorage(MenuBarMenu.visibilityKey) private var showsMenuBarItem = true
     @AppStorage(DockIcon.visibilityKey) private var showsDockIcon = true
 
@@ -24,6 +25,7 @@ struct HangarApp: App {
         Window("Hangar", id: MainWindow.id) {
             ContentView()
                 .environment(store)
+                .environment(updater)
         }
         .defaultWindowPlacement { _, context in
             centered(
@@ -37,7 +39,7 @@ struct HangarApp: App {
         .windowToolbarLabelStyle(fixed: .iconOnly)
         .onChange(of: showsDockIcon) { DockIcon.settingChanged() }
         .onChange(of: showsMenuBarItem) { DockIcon.settingChanged() }
-        .commands { HangarCommands(store: store) }
+        .commands { HangarCommands(store: store, updater: updater) }
 
         DisplayWindows(store: store)
         FilesWindows(store: store)
@@ -56,16 +58,15 @@ struct HangarApp: App {
             SettingsView()
                 .modifier(StoreAlerts())
                 .environment(store)
+                .environment(updater)
         }
 
-        MenuBarExtra(
-            "Hangar",
-            systemImage: store.vms.contains(where: \.isRunning)
-                ? "square.3.layers.3d.top.filled" : "square.3.layers.3d",
-            isInserted: $showsMenuBarItem
-        ) {
+        MenuBarExtra(isInserted: $showsMenuBarItem) {
             MenuBarMenu()
                 .environment(store)
+                .environment(updater)
+        } label: {
+            MenuBarIcon(isRunning: store.vms.contains(where: \.isRunning), hasUpdate: updater.newRelease != nil)
         }
     }
 }
@@ -108,8 +109,10 @@ private struct FilesWindows: Scene {
 
 private struct HangarCommands: Commands {
     let store: VMStore
+    let updater: AppUpdater
 
     var body: some Commands {
+        CommandGroup(after: .appInfo) { CheckForUpdatesButton().environment(updater) }
         CommandGroup(replacing: .newItem) {
             Button("New Virtual Machine…") { store.ask(.newVM(nil)) }
                 .keyboardShortcut("n")

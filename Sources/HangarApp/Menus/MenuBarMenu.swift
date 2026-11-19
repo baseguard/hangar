@@ -12,6 +12,7 @@ struct MenuBarMenu: View {
 
     var body: some View {
         let running = store.vms.filter(\.isRunning).count
+        UpdateMenuItem()
         Text(running == 0 ? "No VMs running" : "\(running) of \(store.vms.count) VMs running")
         Divider()
         ForEach(store.vms) { vm in
