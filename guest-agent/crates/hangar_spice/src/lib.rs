@@ -9,9 +9,8 @@ const PROTOCOL: u32 = 1;
 /// `VDP_CLIENT_PORT`.
 const CLIENT_PORT: u32 = 1;
 
-/// `VD_AGENT_MAX_DATA_SIZE`.
-const CHUNK_LIMIT: usize = 2048;
-/// Bigger messages count as a broken channel.
+/// A bigger chunk counts as a broken channel. A bigger message from the host is skipped, and the
+/// guest sends none: its text goes as empty text instead.
 const MESSAGE_LIMIT: usize = 16 << 20;
 const CHUNK_HEADER: usize = 8;
 const MESSAGE_HEADER: usize = 20;
@@ -73,8 +72,10 @@ impl Session {
         grab(self.has_selection)
     }
 
+    /// Text too long for one message goes as empty text, so the host isn't left waiting for it.
     pub fn guest_text(&self, text: &str) -> Message {
-        clipboard(text, self.has_selection)
+        let sent = if fits_in_a_message(text) { text } else { "" };
+        clipboard(sent, self.has_selection)
     }
 
     pub fn receive(&mut self, message: &Message) -> Option<Reply> {
@@ -106,6 +107,8 @@ pub struct Decoder {
     chunk_left: usize,
     chunk_header: Vec<u8>,
     stream: Vec<u8>,
+    /// What is left of a message too big to take, dropped as it comes.
+    skip_left: usize,
 }
 
 impl Decoder {
@@ -152,14 +155,21 @@ impl Decoder {
     fn take_messages(&mut self) -> Result<Vec<Message>, DecodeError> {
         let mut messages = Vec::new();
 
-        while let (Some(protocol), Some(kind), Some(size)) = (
-            u32_at(&self.stream, 0),
-            u32_at(&self.stream, 4),
-            u32_at(&self.stream, 16),
-        ) {
+        while self.skip_oversized_message() {
+            let (Some(protocol), Some(kind), Some(size)) = (
+                u32_at(&self.stream, 0),
+                u32_at(&self.stream, 4),
+                u32_at(&self.stream, 16),
+            ) else {
+                break;
+            };
             let size = size as usize;
-            if protocol != PROTOCOL || size > MESSAGE_LIMIT {
+            if protocol != PROTOCOL {
                 return Err(DecodeError::UnknownMessage);
+            }
+            if size > MESSAGE_LIMIT {
+                self.skip_left = MESSAGE_HEADER + size;
+                continue;
             }
 
             let end = MESSAGE_HEADER + size;
@@ -176,8 +186,25 @@ impl Decoder {
 
         Ok(messages)
     }
+
+    /// Drops what has come of a skipped message; false while more of it is to come.
+    fn skip_oversized_message(&mut self) -> bool {
+        let dropped = self.skip_left.min(self.stream.len());
+        self.stream.drain(..dropped);
+        self.skip_left -= dropped;
+        self.skip_left == 0
+    }
 }
 
+/// Room for the text in a clipboard message, after the selection prefix and the type.
+fn fits_in_a_message(text: &str) -> bool {
+    text.len() + SELECTION_PREFIX + 4 <= MESSAGE_LIMIT
+}
+
+/// One chunk holds the whole message, as spice-vdagent writes it.
+///
+/// The host takes a message split into `VD_AGENT_MAX_DATA_SIZE` (2048-byte) chunks, but then reads
+/// nothing more on the port, so the clipboard stopped after the first copy of more than about 2 KB.
 pub fn encode(message: &Message) -> Vec<u8> {
     let mut body = Vec::with_capacity(MESSAGE_HEADER + message.data.len());
     body.extend(PROTOCOL.to_le_bytes());
@@ -186,13 +213,10 @@ pub fn encode(message: &Message) -> Vec<u8> {
     body.extend(length(message.data.len()).to_le_bytes());
     body.extend(&message.data);
 
-    let chunks = body.len().div_ceil(CHUNK_LIMIT);
-    let mut output = Vec::with_capacity(body.len() + chunks * CHUNK_HEADER);
-    for chunk in body.chunks(CHUNK_LIMIT) {
-        output.extend(CLIENT_PORT.to_le_bytes());
-        output.extend(length(chunk.len()).to_le_bytes());
-        output.extend(chunk);
-    }
+    let mut output = Vec::with_capacity(CHUNK_HEADER + body.len());
+    output.extend(CLIENT_PORT.to_le_bytes());
+    output.extend(length(body.len()).to_le_bytes());
+    output.extend(body);
 
     output
 }

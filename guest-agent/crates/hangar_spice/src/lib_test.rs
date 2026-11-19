@@ -11,15 +11,19 @@ fn decode_in_small_pieces(bytes: &[u8]) -> Result<Vec<Message>, DecodeError> {
     Ok(messages)
 }
 
+/// The host stops reading after a message split into chunks, so long text goes in one chunk.
 #[test]
-fn long_text_is_split_into_chunks_and_read_back() -> Result<(), DecodeError> {
+fn long_text_goes_in_one_chunk_and_is_read_back() -> Result<(), DecodeError> {
     let sample = "ğüşiöç ".repeat(600);
 
     let bytes = encode(&clipboard(&sample, true));
     let received = decode_in_small_pieces(&bytes)?;
 
     assert_eq!(u32_at(&bytes, 0), Some(CLIENT_PORT));
-    assert_eq!(u32_at(&bytes, 4), Some(2048));
+    assert_eq!(
+        u32_at(&bytes, 4).map(|size| size as usize),
+        Some(bytes.len() - CHUNK_HEADER)
+    );
     assert_eq!(received.len(), 1);
     assert_eq!(text(&received[0], true).as_deref(), Some(sample.as_str()));
     assert_eq!(text(&received[0], false), None);
@@ -93,6 +97,55 @@ fn a_chunk_over_the_limit_ends_the_stream() {
     let decoded = Decoder::default().feed(&oversized);
 
     assert_eq!(decoded, Err(DecodeError::OversizedChunk));
+}
+
+/// The host splits what it sends into chunks of `VD_AGENT_MAX_DATA_SIZE`.
+fn as_the_host_sends(message: &Message) -> Vec<u8> {
+    let one_chunk = encode(message);
+    let mut bytes = Vec::new();
+    for chunk in one_chunk[CHUNK_HEADER..].chunks(2048) {
+        bytes.extend(CLIENT_PORT.to_le_bytes());
+        bytes.extend(length(chunk.len()).to_le_bytes());
+        bytes.extend(chunk);
+    }
+    bytes
+}
+
+/// A message over the limit used to end the stream, and the next connection then read the rest
+/// of it as garbage.
+#[test]
+fn a_message_over_the_limit_is_skipped_and_the_next_one_read() -> Result<(), DecodeError> {
+    let oversized = Message {
+        kind: CLIPBOARD,
+        data: vec![b'x'; MESSAGE_LIMIT + 1],
+    };
+    let mut bytes = as_the_host_sends(&oversized);
+    bytes.extend(as_the_host_sends(&grab(true)));
+
+    let mut decoder = Decoder::default();
+    let mut received = Vec::new();
+    for piece in bytes.chunks(64 * 1024) {
+        received.extend(decoder.feed(piece)?);
+    }
+
+    assert_eq!(received, vec![grab(true)]);
+    assert!(decoder.stream.capacity() < 2 * 64 * 1024 + MESSAGE_HEADER);
+    Ok(())
+}
+
+#[test]
+fn text_too_long_for_a_message_goes_as_empty_text() {
+    let session = Session::default();
+    let longest = "x".repeat(MESSAGE_LIMIT - SELECTION_PREFIX - 4);
+
+    let too_long = session.guest_text(&format!("{longest}x"));
+    let fitting = session.guest_text(&longest);
+
+    assert_eq!(text(&too_long, false).as_deref(), Some(""));
+    assert_eq!(
+        text(&fitting, false).map(|text| text.len()),
+        Some(longest.len())
+    );
 }
 
 #[test]
