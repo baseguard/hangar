@@ -50,8 +50,17 @@ final class Runner: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
         }
 
-        guard mode == .window else { dispatchMain() }
+        guard mode == .window else { runWithoutWindow() }
         runWindow()
+    }
+
+    /// The main run loop, not just the main queue: the shared clipboard hands the guest's text to the Mac's
+    /// pasteboard when an app pastes it, and the pasteboard asks for it through the run loop. Under dispatchMain
+    /// those asks went unanswered, so nothing copied in a VM without a window reached the Mac.
+    private func runWithoutWindow() -> Never {
+        while true {
+            CFRunLoopRun()
+        }
     }
 
     private static func reportStopAndExit(of session: VMSession, mode: Mode, error: Error?) {
