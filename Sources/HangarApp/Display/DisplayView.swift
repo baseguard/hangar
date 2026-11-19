@@ -55,7 +55,8 @@ struct DisplayView: View {
 
 private struct DisplayContent: View {
     @Environment(VMStore.self) private var store
-    @State private var keyboardHint: KeyboardHint?
+    /// The screen opens without the keyboard, so the window starts by saying how to give it one.
+    @State private var keyboardHint: KeyboardHint? = KeyboardHint(capture: .released)
     @State private var capture = ScreenView.Capture.released
     let name: String
 
@@ -155,7 +156,7 @@ private struct KeyboardHint: Equatable {
     let capture: ScreenView.Capture
 }
 
-/// Says how to give the keyboard back, or take it again, for a few seconds after either happens.
+/// Says how to give the keyboard back, or take it, for a few seconds after the window opens or either happens.
 private struct KeyboardHintLabel: View {
     static let duration = Duration.seconds(3)
 
@@ -178,7 +179,7 @@ private struct KeyboardHintLabel: View {
         switch hint.capture {
         case .keyboardAndPointer: "Press ⌃⌥⌘ to give the keyboard and pointer back to your Mac"
         case .keyboard: "Press ⌃⌥⌘ to give the keyboard back to your Mac"
-        case .released: "Click the screen to use the VM again"
+        case .released: "Click the screen to use the VM"
         }
     }
 }

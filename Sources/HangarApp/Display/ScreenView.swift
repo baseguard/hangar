@@ -2,8 +2,8 @@ import AppKit
 import Carbon.HIToolbox
 import Virtualization
 
-/// The VM's screen. While it has the keyboard, keys the Mac would keep, like ⌘Tab, go to the guest too, and the pointer
-/// stays on the screen; ⌃⌥⌘ gives both back to the Mac, and a click on the screen takes them again.
+/// The VM's screen. A click on it gives the guest the keyboard: keys the Mac would keep, like ⌘Tab, go to the guest
+/// too, and the pointer stays on the screen; ⌃⌥⌘ gives both back to the Mac.
 final class ScreenView: VZVirtualMachineView {
     typealias DropHandler = ([URL]) -> Void
 
@@ -36,6 +36,9 @@ final class ScreenView: VZVirtualMachineView {
     private var windowObservers: [NotificationCenter.ObservationToken] = []
     /// A window resizes from its edges and corners, which the held pointer reaches, so it doesn't while held.
     private var resizingWasAllowed = false
+    /// A window makes its screen first responder as it opens. Until a click, the screen refuses: the guest would get
+    /// the keys, but not ⌃⌥⌘ to give them back.
+    private var isTakingKeyboard = false
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -44,7 +47,10 @@ final class ScreenView: VZVirtualMachineView {
 
     required init?(coder: NSCoder) { nil }
 
-    func captureKeyboard() {
+    override var acceptsFirstResponder: Bool { isTakingKeyboard }
+
+    private func captureKeyboard() {
+        isTakingKeyboard = true
         capturesSystemKeys = true
         window?.makeFirstResponder(self)
         if window?.firstResponder === self, !hasKeyboard { holdInput() }
@@ -58,6 +64,7 @@ final class ScreenView: VZVirtualMachineView {
     override func resignFirstResponder() -> Bool {
         let didResign = super.resignFirstResponder()
         if didResign {
+            isTakingKeyboard = false
             capturesSystemKeys = false
             letInputGo()
         }

@@ -13,16 +13,17 @@ struct VirtualMachineScreen: NSViewRepresentable {
         view.dropFiles = dropFiles
         view.captureChanged = captureChanged
         view.automaticallyReconfiguresDisplay = fixedSize == nil
-        // The view has no window until SwiftUI has placed it, a turn of the run loop later.
-        Task {
-            guard let window = view.window else { return }
-            view.captureKeyboard()
-            if let fixedSize {
-                let toolbarHeight = window.frame.height - window.contentLayoutRect.height
-                window.setContentSize(CGSize(width: fixedSize.width, height: fixedSize.height + toolbarHeight))
-            }
+        if let fixedSize {
+            // The view has no window until SwiftUI has placed it, a turn of the run loop later.
+            Task { Self.fitWindow(of: view, to: fixedSize) }
         }
         return view
+    }
+
+    private static func fitWindow(of view: ScreenView, to size: CGSize) {
+        guard let window = view.window else { return }
+        let toolbarHeight = window.frame.height - window.contentLayoutRect.height
+        window.setContentSize(CGSize(width: size.width, height: size.height + toolbarHeight))
     }
 
     func updateNSView(_ view: ScreenView, context: Context) {
