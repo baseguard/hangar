@@ -85,8 +85,10 @@ extension SecretsProxyServer {
         private let toServerHTTP1: NIOSSLContext
         private let toServerHTTP2: NIOSSLContext
         private let current: Mutex<Secrets>
-        /// TLS towards the guest, per host it asked for.
+        /// TLS towards the guest, per host it asked for. With `*.example.com` the guest names the hosts, so the cache
+        /// keeps at most `cachedContextLimit` of them.
         private let toGuestContexts = Mutex<[ToGuestContextKey: (context: NIOSSLContext, madeAt: Date)]>([:])
+        static let cachedContextLimit = 128
 
         init(
             secrets: Secrets, connections: DivertedConnections, report: @escaping @Sendable (TrafficEvent) -> Void
@@ -135,8 +137,22 @@ extension SecretsProxyServer {
             }
 
             let context = try secrets.authority.toGuestContext(for: host, speaking: applicationProtocol, now: now)
-            toGuestContexts.withLock { $0[key] = (context, now) }
+            toGuestContexts.withLock { contexts in
+                Self.makeRoom(in: &contexts, limit: Self.cachedContextLimit, madeAt: \.madeAt, now: now)
+                contexts[key] = (context, now)
+            }
             return context
+        }
+
+        /// Room for one more: certificates past their reuse go first, then the oldest.
+        static func makeRoom<Key, Value>(
+            in cache: inout [Key: Value], limit: Int, madeAt: (Value) -> Date, now: Date
+        ) {
+            guard cache.count >= limit else { return }
+            cache = cache.filter { SecretAuthority.isFresh(madeAt: madeAt($0.value), now: now) }
+            while cache.count >= limit, let oldest = cache.min(by: { madeAt($0.value) < madeAt($1.value) }) {
+                cache[oldest.key] = nil
+            }
         }
 
         /// The real server must prove it is the host, to the Mac's own trust roots, before a secret goes near it: the

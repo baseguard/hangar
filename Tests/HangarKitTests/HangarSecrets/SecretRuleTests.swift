@@ -1,6 +1,7 @@
 import Foundation
-import HangarSecrets
 import Testing
+
+@testable import HangarSecrets
 
 struct SecretRuleTests {
     /// `hangar secret set --header` alone used to save an empty host list, which the VM then refused.
@@ -8,9 +9,12 @@ struct SecretRuleTests {
         let header = SecretRule.Header(name: "Authorization", format: "Bearer %s")
         let existing = SecretRule(name: "TOKEN", hosts: ["api.github.com"], placeholder: "p1", header: nil)
 
-        let withHeader = SecretRule.toSave(name: "TOKEN", hosts: [], header: header, replacing: existing)
-        let withHosts = SecretRule.toSave(name: "TOKEN", hosts: ["Other.example"], header: nil, replacing: withHeader)
-        let fresh = SecretRule.toSave(name: "TOKEN", hosts: ["api.github.com"], header: nil, replacing: nil)
+        let withHeader = SecretRule.toSave(
+            name: "TOKEN", hosts: [], header: header, basicUser: nil, replacing: existing)
+        let withHosts = SecretRule.toSave(
+            name: "TOKEN", hosts: ["Other.example"], header: nil, basicUser: nil, replacing: withHeader)
+        let fresh = SecretRule.toSave(
+            name: "TOKEN", hosts: ["api.github.com"], header: nil, basicUser: nil, replacing: nil)
 
         #expect(withHeader.hosts == ["api.github.com"])
         #expect(withHeader.header == header)
@@ -19,6 +23,43 @@ struct SecretRuleTests {
         #expect(withHosts.header == header)
         #expect(fresh.hosts == ["api.github.com"])
         #expect(fresh.header == nil)
+    }
+
+    /// A rule sends its value in a header or as Basic credentials; giving one drops the other.
+    @Test func aBasicUserGivenReplacesTheHeaderAndKeepsTheRest() {
+        let header = SecretRule.Header(name: "Authorization", format: "Bearer %s")
+        let existing = SecretRule(name: "TOKEN", hosts: ["github.com"], placeholder: "p1", header: header)
+
+        let basic = SecretRule.toSave(
+            name: "TOKEN", hosts: [], header: nil, basicUser: "x-access-token", replacing: existing)
+        let hostsOnly = SecretRule.toSave(
+            name: "TOKEN", hosts: ["*.github.com"], header: nil, basicUser: nil, replacing: basic)
+
+        #expect(basic.header == nil)
+        #expect(basic.basicUser == "x-access-token")
+        #expect(basic.hosts == ["github.com"])
+        #expect(hostsOnly.basicUser == "x-access-token")
+        #expect(hostsOnly.places == ["headers", "signs in as x-access-token"])
+        #expect(throws: (any Error).self) {
+            try SecretRule.validate(sending: SecretRule(name: "T", hosts: [], header: header, basicUser: "me"))
+        }
+    }
+
+    @Test(arguments: ["", "user:name", "user\r\nX-Evil: 1"])
+    func aBasicUserThatWouldBreakTheCredentialsIsRefused(user: String) {
+        #expect(throws: (any Error).self) { try SecretRule.validate(basicUser: user) }
+    }
+
+    @Test func aWildcardHostTakesTheHostsUnderItButNotItself() throws {
+        let rule = SecretRule(name: "TOKEN", hosts: ["*.GitHub.com"])
+
+        #expect(rule.applies(to: "uploads.github.com"))
+        #expect(rule.applies(to: "a.b.github.com"))
+        #expect(!rule.applies(to: "github.com"))
+        #expect(!rule.applies(to: "evilgithub.com"))
+        try SecretRule.validate(host: "*.github.com")
+        #expect(throws: (any Error).self) { try SecretRule.validate(host: "*.com") }
+        #expect(throws: (any Error).self) { try SecretRule.validate(host: "a.*.github.com") }
     }
 
     /// The same line is in hangar_host_commands' tests.
@@ -72,6 +113,19 @@ struct SecretRuleTests {
         #expect(throws: Never.self) {
             try SecretRule.validate(header: SecretRule.Header(name: "Authorization", format: "Bearer %s"))
         }
+    }
+
+    /// With `*.example.com` the guest chooses the hosts, so it could otherwise fill the proxy's memory.
+    @Test func theProxyKeepsAFewCertificatesAndDropsTheOldFirst() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        var cache = ["a": now.addingTimeInterval(-90_000), "b": now.addingTimeInterval(-60), "c": now]
+
+        SecretsProxyServer.State.makeRoom(in: &cache, limit: 3, madeAt: { $0 }, now: now)
+        #expect(Set(cache.keys) == ["b", "c"])
+
+        cache["d"] = now
+        SecretsProxyServer.State.makeRoom(in: &cache, limit: 3, madeAt: { $0 }, now: now)
+        #expect(Set(cache.keys) == ["c", "d"])
     }
 
     @Test func aCertificateTheProxyMadeIsMadeAgainAfterADay() {

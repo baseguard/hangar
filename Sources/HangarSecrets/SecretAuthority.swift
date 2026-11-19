@@ -1,13 +1,14 @@
 internal import Crypto
 import Foundation
 internal import HangarSupport
+internal import HangarTraffic
 internal import NIOSSL
 internal import SwiftASN1
 internal import X509
 
 /// A VM's own certificate authority, which the guest trusts so the secrets proxy can open its HTTPS to hosts with a
-/// secret. The guest trusts its root once; the root signs an intermediate whose name constraints allow exactly the
-/// hosts with a secret, and only the intermediate signs the certificates the proxy shows. A new host set gets a new
+/// secret. The guest trusts its root once; the root signs an intermediate whose name constraints allow only the hosts
+/// with a secret and the names under them, and only the intermediate signs the certificates the proxy shows. A new host set gets a new
 /// intermediate and no new root, since macOS asks a person before it trusts a root. The keys stay in the Mac's
 /// Keychain; only the root's certificate goes to the guest.
 package final class SecretAuthority: Sendable {
@@ -145,7 +146,7 @@ package final class SecretAuthority: Sendable {
             extensions: try Certificate.Extensions {
                 Critical(BasicConstraints.isCertificateAuthority(maxPathLength: 0))
                 Critical(KeyUsage(keyCertSign: true))
-                Critical(NameConstraints(permittedDNSDomains: hosts))
+                Critical(NameConstraints(permittedDNSDomains: hosts.map(SecretHosts.constrainedDomain(of:))))
                 SubjectKeyIdentifier(hash: .init(key.publicKey))
                 AuthorityKeyIdentifier(keyIdentifier: root.keyIdentifier)
             },

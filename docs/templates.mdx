@@ -64,7 +64,7 @@ Only `os` is needed; anything left out gets the usual default.
 | `network` | `managed`, `nat` or `none` |
 | `display` | The screen's width and height, from 640x480 to 7680x4320, and pixels per inch |
 | `traffic` | Traffic rules, in the same form as an exported rules file (see [Traffic rules](traffic-rules.mdx)) |
-| `secrets` | The secrets the VM expects: name, hosts, and optionally the header and the prefix before the value (see [Secrets](secrets.mdx)) |
+| `secrets` | The secrets the VM expects: name, hosts, and optionally the header and the prefix before the value, or `basicUser` to sign in with Basic auth instead (see [Secrets](secrets.mdx)) |
 | `sharedFolders` | Folders shared with the VM: name, path on the Mac, read-only or not |
 | `clipboard`, `audio`, `rosetta` | `true` or `false`; `rosetta` is for Linux |
 | `cloudInit` | Linux: a `#cloud-config` document or a `#!` script that cloud-init runs on the first start |

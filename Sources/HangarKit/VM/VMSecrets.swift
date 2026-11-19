@@ -78,7 +78,7 @@ package enum VMSecrets {
         for host in rule.hosts {
             try SecretRule.validate(host: host)
         }
-        if let header = rule.header { try SecretRule.validate(header: header) }
+        try SecretRule.validate(sending: rule)
     }
 
     private static func checkLimits(_ settings: SecretSettings) throws {

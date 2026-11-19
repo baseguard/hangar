@@ -59,7 +59,7 @@ package final class TrafficInspector {
     var aliases: [String: (origin: String, expires: Date)] = [:]
     var pendingQueries: [UInt32: PendingQuery] = [:]
     /// Hosts that have a secret, and the proxy their HTTPS goes to (`TrafficInspector+Secrets`).
-    var secretHosts: Set<String> = []
+    var secretHosts = SecretHosts([])
     var secretsProxy: SecretsDiversion?
     /// The diverted connections by the guest's port, to find the one a frame from the proxy belongs to.
     var divertedFlows: [UInt16: FlowKey] = [:]

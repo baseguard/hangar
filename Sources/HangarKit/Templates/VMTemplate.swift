@@ -41,6 +41,8 @@ package struct VMTemplate: Codable, Hashable, Sendable {
         /// A header the value is sent in on every request to the hosts, after `prefix`.
         package var header: String?
         package var prefix: String?
+        /// Instead of a header: the user name the value is the Basic password of, on every request to the hosts.
+        package var basicUser: String?
     }
 
     package var os: GuestOS
@@ -166,6 +168,7 @@ extension VMTemplate.Secret {
     init(_ rule: SecretRule) {
         name = rule.name
         hosts = rule.hosts
+        basicUser = rule.basicUser
         if let header = rule.header {
             let parts = header.format.components(separatedBy: SecretRule.valueMarker)
             self.header = header.name
@@ -177,13 +180,14 @@ extension VMTemplate.Secret {
     func validate() throws {
         try SecretRule.validate(name: name)
         for host in hosts { try SecretRule.validate(host: host) }
-        if let header = rule().header { try SecretRule.validate(header: header) }
+        try SecretRule.validate(sending: rule())
     }
 
     /// With a placeholder of its own, so no two VMs made from one template share one.
     package func rule() -> SecretRule {
         let format = (prefix.map { $0 + " " } ?? "") + SecretRule.valueMarker
-        return SecretRule(name: name, hosts: hosts, header: header.map { .init(name: $0, format: format) })
+        return SecretRule(
+            name: name, hosts: hosts, header: header.map { .init(name: $0, format: format) }, basicUser: basicUser)
     }
 }
 

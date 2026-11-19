@@ -15,12 +15,12 @@ struct TrafficInspectorSecretsTests {
     private let connections = DivertedConnections()
     private let now = Date(timeIntervalSince1970: 1_800_000_000)
 
-    private func inspector() -> TrafficInspector {
+    private func inspector(secretHosts: Set<String> = ["api.github.com"]) -> TrafficInspector {
         let inspector = TrafficInspector(
             guestMAC: guestMAC, guestIP: guestIP, subnet: subnet, gatewayMAC: gatewayMAC,
             serverMAC: [0x02, 0, 0, 0, 0, 0x02], policy: TrafficPolicy())
         inspector.useSecrets(
-            for: ["api.github.com"], proxy: SecretsDiversion(endpoint: proxy, connections: connections))
+            for: secretHosts, proxy: SecretsDiversion(endpoint: proxy, connections: connections))
         return inspector
     }
 
@@ -110,6 +110,20 @@ struct TrafficInspectorSecretsTests {
         let delivered = try tcp(in: try #require(output.toGuest.first))
         #expect(delivered.ip.source == github)
         #expect(delivered.sourcePort == 443)
+    }
+
+    @Test func aWildcardHostTakesTheNamesUnderItButNotItself() throws {
+        let watcher = inspector(secretHosts: ["*.GitHub.com"])
+        let uploads = IPv4Address(140, 82, 121, 5).value
+        resolve(watcher, "uploads.github.com", to: "140.82.121.5")
+        resolve(watcher, "github.com", to: "140.82.121.4")
+
+        let underIt = watcher.fromGuest(guestSYN(to: uploads), now: now)
+        let itself = watcher.fromGuest(guestSYN(to: github), now: now)
+
+        let diverted = try tcp(in: try #require(underIt.toNetwork.first))
+        #expect(TCPRedirect.Endpoint(address: diverted.ip.destination, port: diverted.destinationPort) == proxy)
+        #expect(try tcp(in: try #require(itself.toNetwork.first)).ip.destination == github)
     }
 
     @Test func otherHostsAndPortsGoToTheirServer() throws {

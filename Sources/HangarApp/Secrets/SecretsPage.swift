@@ -193,9 +193,7 @@ private struct SecretRow: View {
     }
 
     private var places: String {
-        var places = ["headers"]
-        if let header = rule.header { places.append("sets \(header.name)") }
-        return places.joined(separator: ", ")
+        rule.places.joined(separator: ", ")
     }
 }
 

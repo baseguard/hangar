@@ -16,9 +16,9 @@ package struct SecretsDiversion: Sendable {
 /// Diverting the guest's HTTPS to hosts with a secret. The decision falls at the SYN, by the server's address and the
 /// names DNS gave it; from then on every frame of the connection is moved to the proxy and back.
 extension TrafficInspector {
-    /// The hosts are lowercased once here; the names they are compared with come lowercased from every parser.
+    /// `hosts` are the secrets' hosts as the user gave them, `*.github.com` included.
     package func useSecrets(for hosts: Set<String>, proxy: SecretsDiversion?) {
-        secretHosts = Set(hosts.map { $0.lowercased() })
+        secretHosts = SecretHosts(hosts)
         secretsProxy = proxy
     }
 

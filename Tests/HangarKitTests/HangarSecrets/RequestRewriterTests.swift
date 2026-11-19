@@ -80,6 +80,41 @@ struct RequestRewriterTests {
             ])
     }
 
+    /// git sends the token its credential helper gave as Basic credentials, so the placeholder is hidden in base64.
+    @Test func thePlaceholderInBasicCredentialsBecomesTheValue() throws {
+        let credentials = Data("x-access-token:hangarGITHUB".utf8).base64EncodedString()
+        let request = head(fields: [RequestHead.Field("Authorization", "Basic \(credentials)")])
+
+        let verdict = rewriter().rewrite(request)
+
+        let sent = try forwarded(verdict)
+        let expected = Data("x-access-token:ghp_real_value".utf8).base64EncodedString()
+        #expect(sent.fields.contains(RequestHead.Field("Authorization", "Basic \(expected)")))
+        #expect(verdict == .forward(sent, used: ["GITHUB_TOKEN"]))
+    }
+
+    @Test func anotherHostsPlaceholderInBasicCredentialsIsRefused() {
+        let credentials = Data("me:hangarOPENAI".utf8).base64EncodedString()
+
+        let verdict = rewriter().rewrite(head(fields: [RequestHead.Field("Authorization", "basic \(credentials)")]))
+
+        #expect(status(verdict) == 403)
+    }
+
+    @Test func aBasicRuleSignsInEveryRequest() throws {
+        let rule = SecretRule(
+            name: "GITHUB_TOKEN", hosts: ["*.github.com"], placeholder: "hangarGITHUB", basicUser: "x-access-token")
+
+        let sent = try forwarded(
+            rewriter([rule]).rewrite(head(fields: [RequestHead.Field("Authorization", "token anything")])))
+
+        let expected = Data("x-access-token:ghp_real_value".utf8).base64EncodedString()
+        #expect(
+            sent.fields.filter { $0.name.lowercased() == "authorization" } == [
+                RequestHead.Field("Authorization", "Basic \(expected)")
+            ])
+    }
+
     @Test func tunnelsUpgradesAndDoubleLengthsAreRefused() {
         let connect = RequestHead(
             method: "CONNECT", uri: "api.github.com:443", fields: [RequestHead.Field("Host", "api.github.com")])

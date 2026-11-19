@@ -1,8 +1,11 @@
 import Foundation
 internal import HangarSupport
+internal import HangarTraffic
 
 /// One secret of a VM: the guest sees `placeholder` in the environment variable `name`, and the secrets proxy puts the
-/// real value, kept in the Mac's Keychain, in its place on requests to `hosts`.
+/// real value, kept in the Mac's Keychain, in its place on requests to `hosts`. Besides that, the proxy sends the value
+/// in `header`, or as the password of Basic credentials for `basicUser`, on every request to them; a rule has at most
+/// one of the two.
 package struct SecretRule: Codable, Hashable, Sendable {
     /// Where a header's format takes the value.
     package static let valueMarker = "%s"
@@ -22,14 +25,17 @@ package struct SecretRule: Codable, Hashable, Sendable {
     package var hosts: [String]
     package var placeholder: String
     package var header: Header?
+    package var basicUser: String?
 
     package init(
-        name: String, hosts: [String], placeholder: String = SecretRule.newPlaceholder(), header: Header? = nil
+        name: String, hosts: [String], placeholder: String = SecretRule.newPlaceholder(), header: Header? = nil,
+        basicUser: String? = nil
     ) {
         self.name = name
         self.hosts = hosts.map { $0.lowercased() }
         self.placeholder = placeholder
         self.header = header
+        self.basicUser = basicUser
     }
 
     /// A config.json edited by hand gets its hosts lowercased too, so a rule's hosts are always lowercase.
@@ -39,7 +45,8 @@ package struct SecretRule: Codable, Hashable, Sendable {
             name: try fields.decode(String.self, forKey: .name),
             hosts: try fields.decode([String].self, forKey: .hosts),
             placeholder: try fields.decode(String.self, forKey: .placeholder),
-            header: try fields.decodeIfPresent(Header.self, forKey: .header))
+            header: try fields.decodeIfPresent(Header.self, forKey: .header),
+            basicUser: try fields.decodeIfPresent(String.self, forKey: .basicUser))
     }
 
     /// Letters and digits only, so it can stand in a header, a URL or JSON without escaping.
@@ -48,20 +55,34 @@ package struct SecretRule: Codable, Hashable, Sendable {
         return "hangar" + String((0..<32).map { _ in letters.randomElement() ?? "x" })
     }
 
-    /// The rule `hangar secret set` saves for a secret the VM may have, like a template's: the hosts and header given
-    /// replace the old ones, and those left out are kept.
+    /// The rule `hangar secret set` saves for a secret the VM may have, like a template's: the hosts given replace the
+    /// old ones, and a header or Basic user given replaces both old ones, since a rule has one of them at most. What
+    /// is left out is kept.
     package static func toSave(
-        name: String, hosts: [String], header: Header?, replacing existing: SecretRule?
+        name: String, hosts: [String], header: Header?, basicUser: String?, replacing existing: SecretRule?
     ) -> SecretRule {
-        guard let existing else { return SecretRule(name: name, hosts: hosts, header: header) }
+        guard let existing else {
+            return SecretRule(name: name, hosts: hosts, header: header, basicUser: basicUser)
+        }
 
+        let changesSending = header != nil || basicUser != nil
         return SecretRule(
             name: name, hosts: hosts.isEmpty ? existing.hosts : hosts, placeholder: existing.placeholder,
-            header: header ?? existing.header)
+            header: changesSending ? header : existing.header,
+            basicUser: changesSending ? basicUser : existing.basicUser)
+    }
+
+    /// Where the proxy puts the value, for a list of the VM's secrets.
+    package var places: [String] {
+        var places = ["headers"]
+        if let header { places.append("sets \(header.name)") }
+        if let basicUser { places.append("signs in as \(basicUser)") }
+        return places
     }
 
     package func applies(to host: String) -> Bool {
-        hosts.contains(host.lowercased())
+        let name = host.lowercased()
+        return hosts.contains { SecretHosts.matches($0, name) }
     }
 
     /// The guest agent accepts the same names and nothing else.
@@ -91,10 +112,29 @@ package struct SecretRule: Codable, Hashable, Sendable {
         guestSystemVariables.contains(name) || guestSystemPrefixes.contains { name.hasPrefix($0) }
     }
 
+    /// A host name, or `*.` and one for every host under it.
     package static func validate(host: String) throws {
-        let isHostName = host.wholeMatch(of: /[A-Za-z0-9]([A-Za-z0-9-]{0,62}\.)+[A-Za-z]{2,63}/) != nil
-        guard isHostName, host.count <= 253 else {
-            throw HangarError("'\(host)' isn't a host name, like api.github.com.")
+        let name = SecretHosts.constrainedDomain(of: host)
+        let isHostName = name.wholeMatch(of: /[A-Za-z0-9]([A-Za-z0-9-]{0,62}\.)+[A-Za-z]{2,63}/) != nil
+        guard isHostName, name.count <= 253 else {
+            throw HangarError(
+                "'\(host)' isn't a host name, like api.github.com, or *.github.com for every host under it.")
+        }
+    }
+
+    /// Basic credentials end the user name at the first ':', and a line break would add headers of its own.
+    package static func validate(basicUser: String) throws {
+        let hasControlCharacter = basicUser.unicodeScalars.contains { $0.properties.generalCategory == .control }
+        guard (1...256).contains(basicUser.utf8.count), !basicUser.contains(":"), !hasControlCharacter else {
+            throw HangarError("'\(basicUser)' can't be a Basic user name: up to 256 characters, without ':'.")
+        }
+    }
+
+    package static func validate(sending rule: SecretRule) throws {
+        if let header = rule.header { try validate(header: header) }
+        if let basicUser = rule.basicUser { try validate(basicUser: basicUser) }
+        guard rule.header == nil || rule.basicUser == nil else {
+            throw HangarError("Secret \(rule.name) sets a header or signs in with Basic auth, not both.")
         }
     }
 

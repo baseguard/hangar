@@ -37,8 +37,8 @@ package struct RequestHead: Equatable, Sendable {
 }
 
 /// What the secrets proxy does with one request to a host with a secret, decided from its head alone: the checks that
-/// keep a secret on its own host, and the headers where its placeholder becomes the value. Only headers get a value:
-/// the URL and the body go to the server as the guest sent them.
+/// keep a secret on its own host, and the headers where its placeholder becomes the value, Basic credentials
+/// included. Only headers get a value: the URL and the body go to the server as the guest sent them.
 package struct RequestRewriter: Sendable {
     package struct Refusal: Error, Equatable {
         package let status: Int
@@ -77,13 +77,28 @@ package struct RequestRewriter: Sendable {
         return .forward(rewritten, used: used)
     }
 
-    /// Every header that holds the placeholder, and the rule's own header on every request.
+    /// Every header that holds the placeholder, as it is or inside Basic credentials, and the rule's own header or
+    /// Basic sign-in on every request.
     private func put(_ value: String, of rule: SecretRule, into head: inout RequestHead) {
         for index in head.fields.indices {
             head.fields[index].value = head.fields[index].value.replacingOccurrences(of: rule.placeholder, with: value)
         }
+        putInBasicCredentials(value, of: rule, into: &head)
         if let header = rule.header {
             head.set(header.name, to: header.format.replacingOccurrences(of: SecretRule.valueMarker, with: value))
+        }
+        if let basicUser = rule.basicUser {
+            head.set("Authorization", to: BasicCredentials.fieldValue(user: basicUser, password: value))
+        }
+    }
+
+    private func putInBasicCredentials(_ value: String, of rule: SecretRule, into head: inout RequestHead) {
+        for index in head.fields.indices {
+            guard let credentials = BasicCredentials.decoded(head.fields[index].value),
+                credentials.contains(rule.placeholder)
+            else { continue }
+            let withValue = credentials.replacingOccurrences(of: rule.placeholder, with: value)
+            head.fields[index].value = BasicCredentials.fieldValue(credentials: withValue)
         }
     }
 
@@ -122,7 +137,11 @@ package struct RequestRewriter: Sendable {
     }
 
     private func contains(_ placeholder: String, _ head: RequestHead) -> Bool {
-        head.uri.contains(placeholder) || head.fields.contains { $0.value.contains(placeholder) }
+        head.uri.contains(placeholder)
+            || head.fields.contains { field in
+                field.value.contains(placeholder)
+                    || BasicCredentials.decoded(field.value)?.contains(placeholder) == true
+            }
     }
 
     private static func hostName(_ field: String) -> String {
