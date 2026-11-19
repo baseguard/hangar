@@ -90,9 +90,17 @@ package struct DiskImage {
         return arguments + [url.path]
     }
 
-    /// The shortest device entry is the whole disk; the others are its slices.
+    /// The disk macOS makes for each APFS container it finds in an image.
+    private static let apfsContainerScheme = "EF57347C-0000-11AA-AA11-00306543ECAC"
+
+    /// The whole disk carries the partition scheme; without one, it is the shortest entry, as its slices add to its
+    /// name. An image with APFS also lists the containers macOS made of it, as disks with names just as short, so
+    /// those never count.
     private static func wholeDisk(in entities: [[String: Any]]) -> String? {
-        entities.compactMap { $0["dev-entry"] as? String }.min { $0.count < $1.count }
+        let scheme = entities.first { ($0["content-hint"] as? String)?.hasSuffix("_partition_scheme") == true }
+        if let device = scheme?["dev-entry"] as? String { return device }
+        let disks = entities.filter { $0["content-hint"] as? String != apfsContainerScheme }
+        return disks.compactMap { $0["dev-entry"] as? String }.min { $0.count < $1.count }
     }
 
     /// Mount points by volume kind ("msdos", "hfs", …).
