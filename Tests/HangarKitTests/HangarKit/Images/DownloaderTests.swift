@@ -51,6 +51,13 @@ struct DownloaderTests {
         #expect(!FileManager.default.fileExists(atPath: file.path))
     }
 
+    /// Images, ISOs, IPSWs, registries and Hangar's own updates all come over these sessions.
+    @Test func downloadsRefuseTLSOlderThan12() {
+        #expect(URLSessionConfiguration.downloads.tlsMinimumSupportedProtocolVersion == .TLSv12)
+        #expect(URLSessionConfiguration.registry.tlsMinimumSupportedProtocolVersion == .TLSv12)
+        #expect(URLSessionConfiguration.registry.httpShouldSetCookies == false)
+    }
+
     @Test func checksumListsMatchOnlyTheExactName() {
         let sha256 = String(repeating: "ab", count: 32)
         let sha512 = String(repeating: "cd", count: 64)

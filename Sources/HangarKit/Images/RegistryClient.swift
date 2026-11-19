@@ -12,18 +12,11 @@ final class RegistryClient: BlobSource {
     private static let uploadReplyLimit = 1 << 20
     private static let shownErrorBytes = 300
 
-    static var withoutCookies: URLSessionConfiguration {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.httpCookieStorage = nil
-        configuration.httpShouldSetCookies = false
-        return configuration
-    }
-
     let image: ImageReference
     private let credentials: RegistryCredentials?
     private let pushes: Bool
     private let uploadChunkSize: Int
-    private let session = URLSession(configuration: RegistryClient.withoutCookies)
+    private let session = URLSession(configuration: .registry)
     private let authorization = Mutex<String?>(nil)
     private let signingIn = Mutex<Task<Void, any Error>?>(nil)
 

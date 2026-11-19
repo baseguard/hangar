@@ -27,7 +27,7 @@ final class BlobStream: NSObject, URLSessionDataDelegate, Sendable {
         let stream = BlobStream(begin: begin, consume: consume)
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
-        let session = URLSession(configuration: RegistryClient.withoutCookies, delegate: stream, delegateQueue: queue)
+        let session = URLSession(configuration: .registry, delegate: stream, delegateQueue: queue)
         defer { session.finishTasksAndInvalidate() }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in

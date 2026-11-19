@@ -26,7 +26,7 @@ package final class Downloader: NSObject, URLSessionDownloadDelegate, Sendable {
 
     /// Small files, like checksum lists and rules files, come within 30 seconds or not at all.
     private static let smallFiles: URLSession = {
-        let configuration = URLSessionConfiguration.default
+        let configuration = URLSessionConfiguration.downloads
         configuration.timeoutIntervalForResource = 30
         return URLSession(configuration: configuration)
     }()
@@ -193,7 +193,7 @@ package final class Downloader: NSObject, URLSessionDownloadDelegate, Sendable {
     }
 
     private func run(_ url: URL) async throws {
-        let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+        let session = URLSession(configuration: .downloads, delegate: self, delegateQueue: nil)
         defer { session.finishTasksAndInvalidate() }
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
